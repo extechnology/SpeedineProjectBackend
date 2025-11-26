@@ -34,7 +34,7 @@ class StepTellsStory(models.Model) :
     updated = models.DateTimeField(auto_now=True,blank=True,null=True)
         
     def __str__(self):
-        return self.image1
+        return str(self.image1)
     
 class ContactBanner(models.Model):
     image=models.ImageField()
@@ -43,17 +43,19 @@ class ContactBanner(models.Model):
     updated = models.DateTimeField(auto_now=True,blank=True,null=True)
     
     def __str__(self):
-        return self.image
+        return str(self.image)
     
 class AboutUsSectionImages(models.Model):
     banner=models.ImageField()
     image=models.ImageField()
     
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True,blank=True,null=True)
     updated = models.DateTimeField(auto_now=True,blank=True,null=True)
     
     def __str__(self):
-        return self.image
+        return str(self.image)
 
 
 class AboutUsCustomerReview(models.Model):
