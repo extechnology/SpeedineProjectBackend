@@ -1,4 +1,4 @@
-from .ui_models import CarouselImage, ThumbNail, StepTellsStory, ContactBanner, AboutUsSectionImages
+from .ui_models import *
 from rest_framework import serializers
 
 
@@ -25,4 +25,9 @@ class ContactBannerSerializer(serializers.ModelSerializer):
 class AboutUsSectionImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = AboutUsSectionImages
+        fields = '__all__'
+
+class AboutUsCustomerReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutUsCustomerReview
         fields = '__all__'

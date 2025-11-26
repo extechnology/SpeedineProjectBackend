@@ -227,20 +227,53 @@ GEOIP_PATH = os.path.join(BASE_DIR, "geoip")  # Place GeoLite2-City.mmdb here
 # --------------------------------------------------
 
 JAZZMIN_SETTINGS = {
-    "site_title": "ExApplication Admin",
-    "site_header": "ExApplication Admin",
-    "site_brand": "ExApplication Admin",
-    "welcome_sign": "Welcome to ExApplication Admin",
-    'site_logo': 'images/logo.png',
+    "site_title": "Speedine Admin",
+    "site_header": "Speedine Admin",
+    "site_brand": "Speedine Admin",
+    "welcome_sign": "Welcome to Speedine Admin",
+    'site_logo': 'images/speedine.png',
     "site_logo_classes": "img-circle",
-    "site_icon": "images/favicon.ico",
-    "login_logo": 'images/logo.png',
-    "copyright": "ExApplication",
+    "site_icon": "images/speedine.png",
+    "login_logo": 'images/speedine.png',
+    "login_logo_classes": "w-100",
+    "copyright": "Speedine",
     "show_ui_builder": True,
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
 }
 
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": True,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-secondary navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": True,
+    "sidebar_nav_flat_style": True,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-outline-primary",
+        "secondary": "btn-outline-secondary",
+        "info": "btn-outline-info",
+        "warning": "btn-outline-warning",
+        "danger": "btn-outline-danger",
+        "success": "btn-outline-success"
+    },
+    "actions_sticky_top": False
+}
 
 
 # --------------------------------------------------
