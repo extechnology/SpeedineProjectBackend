@@ -11,7 +11,7 @@ class ProductListAPIView(APIView):
 
     def get(self, request):
         products = ProductModel.objects.all().order_by('-created_at')
-        serializer = ProductSerializer(products, many=True)
+        serializer = ProductSerializer(products, many=True,context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -20,5 +20,5 @@ class ProductDetailAPIView(APIView):
 
     def get(self, request, pk):
         product = get_object_or_404(ProductModel, pk=pk)
-        serializer = ProductSerializer(product)
+        serializer = ProductSerializer(product,context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
