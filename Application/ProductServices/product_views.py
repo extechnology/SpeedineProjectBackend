@@ -18,7 +18,15 @@ class ProductListAPIView(APIView):
 
 class ProductDetailAPIView(APIView):
 
-    def get(self, request, pk):
-        product = get_object_or_404(ProductModel, pk=pk)
+    def get(self, request, id):
+        product = get_object_or_404(ProductModel, id=id)
         serializer = ProductSerializer(product,context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CategoryView(APIView):
+
+    def get(self, request):
+        categories = CategoryModel.objects.all()
+        serializer = CategorySerializer(categories, many=True,contaxt = {'request': request} )
+        return Response(serializer.data, status=status.HTTP_200_OK  )
