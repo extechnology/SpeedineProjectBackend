@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 
 
 
-class ProductListCreateAPIView(APIView):
+class ProductListAPIView(APIView):
 
     def get(self, request):
         products = ProductModel.objects.all().order_by('-created_at')
