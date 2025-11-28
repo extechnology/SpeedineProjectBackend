@@ -10,4 +10,6 @@ urlpatterns = [
     path('users/', include('Application.UserServices.user_urls')),
     
     path('ui/', include('Application.UIServices.ui_urls')),
+    
+    path('recipes/', include('Application.RecipeServices.recipe_urls')),
 ]
