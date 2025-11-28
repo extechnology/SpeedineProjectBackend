@@ -1,8 +1,9 @@
 from django.db import models
-from ..CategoryServices.category_models import Category
+from Application.CategoryServices.category_models import Category
 import uuid
 
 
+ 
 class ProductModel(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=255, unique=True)
@@ -83,3 +84,4 @@ class CustomerReviewModel(models.Model):
     
     def __str__(self):
         return f"Review by {self.name} - Rating: {self.rating}"
+
