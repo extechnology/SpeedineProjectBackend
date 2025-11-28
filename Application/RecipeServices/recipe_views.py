@@ -13,6 +13,13 @@ class RecipeListAPIView(APIView):
         serializer = RecipeSerializer(recipes, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def post(self, request):
+        serializer = RecipeSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class RecipeDetailAPIView(APIView):
 
     def get(self, request, id):

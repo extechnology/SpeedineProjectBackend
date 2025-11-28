@@ -8,7 +8,7 @@ class RecipeModel(models.Model):
     video_url = models.URLField(blank=True, null=True)
     ingredients = models.TextField()
     image = models.ImageField(upload_to='recipe_images/')
-    
+    is_featured = models.BooleanField(default=False)
     
     def __str__(self):
         return self.title

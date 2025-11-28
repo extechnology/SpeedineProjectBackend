@@ -5,3 +5,4 @@ urlpatterns = [
     path('recipe-list/', RecipeListAPIView.as_view(), name='recipe-list'),
     path('recipes/<int:id>/', RecipeDetailAPIView.as_view(), name='recipe-detail'),
 ]
+
