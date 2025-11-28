@@ -12,6 +12,7 @@ from .Authentication.auth_models import *
 from .CategoryServices.category_models import *
 from .ProductServices.product_admin import *
 from .UIServices.ui_admin import *
+from .RecipeServices.recipe_admin import *
 
 import nested_admin
 
