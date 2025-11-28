@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .ui_models import *
+from .ui_models import CarouselImage, ThumbNail, StepTellsStory, ContactBanner, AboutUsSectionImages, AboutUsCustomerReview
 
 admin.site.register(CarouselImage)
 admin.site.register(ThumbNail)
