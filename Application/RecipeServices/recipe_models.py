@@ -4,6 +4,7 @@ import uuid
 
 class RecipeModel(models.Model):
     title = models.CharField(max_length=255, unique=True)
+    subtitle = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     video_url = models.URLField(blank=True, null=True)
     ingredients = models.TextField()
@@ -23,7 +24,6 @@ class RecipeModel(models.Model):
     
 class RecipeStepModel(models.Model):
     recipe = models.ForeignKey(RecipeModel, on_delete=models.CASCADE, related_name='steps')
-    description = models.TextField()
     step_number = models.PositiveIntegerField()
     step_title = models.CharField(max_length=255)
     instruction = models.TextField()
