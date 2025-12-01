@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel,UserAddressModel
 from ..ProductServices.product_serializers import ProductSerializer
 from ..ProductServices.product_models import ProductModel
 from ..models import User
@@ -63,3 +63,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
+
+
+class UserAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAddressModel
+        fields = '__all__'
