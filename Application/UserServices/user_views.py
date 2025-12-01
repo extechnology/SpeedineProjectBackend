@@ -1,16 +1,16 @@
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel
-from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel
+from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from  Application.permissions import IsUserAuthenticated
 
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserCartSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsUserAuthenticated]
 
     def get_queryset(self):
         return UserCartModel.objects.filter(user=self.request.user)
@@ -31,7 +31,7 @@ class CartViewSet(viewsets.ReadOnlyModelViewSet):
 
 class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = UserCartItemsSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsUserAuthenticated]
 
     def get_queryset(self):
         return UserCartItemsModel.objects.filter(user_cart__user=self.request.user)
@@ -72,9 +72,32 @@ class ContactUsViewSet(viewsets.ModelViewSet):
     
     
 class CurrentUserAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsUserAuthenticated]
 
     def get(self, request):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+class UserAddressAPIView(APIView):
+    permission_classes = [IsUserAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserAddressSerializer(user)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = UserAddressSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        address = UserAddressModel.objects.get(pk=pk)
+        serializer = UserAddressSerializer(address, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
