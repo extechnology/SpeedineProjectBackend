@@ -26,7 +26,12 @@ class UserCartItemsSerializer(serializers.ModelSerializer):
 
 
 class UserCartSerializer(serializers.ModelSerializer):
-    items = UserCartItemsSerializer(source='usercartitemsmodel_set', many=True, read_only=True)
+    items = UserCartItemsSerializer(
+    source='cart_items',
+    many=True,
+    read_only=True
+)
+
     total_price = serializers.SerializerMethodField()
     total_items = serializers.SerializerMethodField()
 
@@ -36,12 +41,14 @@ class UserCartSerializer(serializers.ModelSerializer):
 
     def get_total_price(self, obj):
         total = 0
-        for item in obj.usercartitemsmodel_set.all():
+        for item in obj.cart_items.all():
+
             total += item.product.price * item.quantity
         return total
 
     def get_total_items(self, obj):
-        return sum(item.quantity for item in obj.usercartitemsmodel_set.all())
+        return sum(item.quantity for item in obj.cart_items.all())
+
 
 
 
