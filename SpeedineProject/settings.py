@@ -109,6 +109,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
@@ -183,33 +190,53 @@ CORS_ALLOW_METHODS = [
 ]
 
 
-
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'Application.authentication.CookieJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.CursorPagination',
     'PAGE_SIZE': 10,
 }
 
 
-
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),  # Customize as needed
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=365),
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
+    # --- Token Lifetimes (Best Practice) ---
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),     # short-lived
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),        # 1 week (standard)
+    "ROTATE_REFRESH_TOKENS": True,                      # auto rotate refresh token for security
+    "BLACKLIST_AFTER_ROTATION": True,                   # blacklist old refresh
+
+    # --- Algorithms / Keys ---
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "VERIFYING_KEY": None,
+
+    # --- Authorization Header (rarely used since we use cookies) ---
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+
+    # --- Claims ---
+    "TOKEN_TYPE_CLAIM": "token_type",
+
+    # --- Cookie Based Auth (IMPORTANT) ---
+    "AUTH_COOKIE": "access_token",            # Name of access token cookie
+    "AUTH_COOKIE_REFRESH": "refresh_token",   # Name of refresh token cookie
+
+    "AUTH_COOKIE_SECURE": True,               # Only HTTPS (production)
+    "AUTH_COOKIE_HTTP_ONLY": True,            # Cannot be accessed via JS
+    "AUTH_COOKIE_SAMESITE": "None",           # Allows cross-site frontend/backend
+
+    "AUTH_COOKIE_PATH": "/",                  # Cookie available anywhere
+    "AUTH_COOKIE_DOMAIN": None,               # Use your domain in production if needed
+
+    # --- Extra Options ---
+    "AUTH_COOKIE_REFRESH_PATH": "/api/auth/refresh/",  # Endpoint for refresh (optional)
 }
+
 
 
 AUTHENTICATION_BACKENDS = [
