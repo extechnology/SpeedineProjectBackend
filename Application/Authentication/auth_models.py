@@ -44,15 +44,14 @@ class ResetPasswordOTP(models.Model):
         from django.utils import timezone
         from datetime import timedelta
 
-        # Delete old OTPs for the same identifier
         ResetPasswordOTP.objects.filter(identifier=self.identifier).delete()
         super().save(*args, **kwargs)
         
     def is_valid(self, input_otp):
-        # OTP is valid for 10 minutes
 
         if self.otp != input_otp:
             return False
         if timezone.now() > self.created_at + timedelta(minutes=10):
             return False
         return True
+    
