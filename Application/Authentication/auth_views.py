@@ -161,10 +161,12 @@ class VerifyOTPView(APIView):
 
             response = Response({
                 'message': 'Account verified successfully',
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh)
             }, status=status.HTTP_200_OK)
 
-            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=True, samesite='None', max_age=360000)
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite='None', max_age=7 * 24 * 360000)
+            # response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=True, samesite='None', max_age=360000)
+            # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite='None', max_age=7 * 24 * 360000)
             return response
         # --- flatten the error response here ---
         errors = serializer.errors
@@ -214,11 +216,14 @@ class LoginView(APIView):
 
         response = Response({
             "message": "Login successful",
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh)
         }, status=status.HTTP_200_OK)
 
         # Set cookies
-        response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=True, samesite='None', max_age=360000)
-        response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite='None', max_age=7 * 24 * 360000)
+        # response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=True, samesite='None', max_age=360000)
+        # response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite='None', max_age=7 * 24 * 360000)
+
 
         return response
     
@@ -232,8 +237,9 @@ class LogoutView(APIView):
         }, status=status.HTTP_200_OK)
 
         # Delete cookies
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        # response.delete_cookie("access_token")
+        # response.delete_cookie("refresh_token")
+
 
         return response
 
@@ -252,17 +258,20 @@ class RefreshTokenView(APIView):
         except Exception:
             raise AuthenticationFailed("Invalid refresh token")
 
-        response = Response({"message": "Access token refreshed"}, status=status.HTTP_200_OK)
-        response.set_cookie(
-            key="access_token",
-            value=new_access_token,
-            httponly=True,
-            secure=True,
-            samesite='None',
-            max_age=3600,
-            # cross_site=True,
+        response = Response({
+            "message": "Access token refreshed",
+            "access_token": new_access_token
+        }, status=status.HTTP_200_OK)
+        # response.set_cookie(
+        #     key="access_token",
+        #     value=new_access_token,
+        #     httponly=True,
+        #     secure=True,
+        #     samesite='None',
+        #     max_age=3600,
+        #     # cross_site=True,
 
-        )
+        # )
 
         return response
     
