@@ -185,8 +185,9 @@ class VerifyOTPView(APIView):
 
         return Response({"message": message}, status=status.HTTP_400_BAD_REQUEST)
 
-# @method_decorator(csrf_exempt, name='dispatch')
-# @rate_limit(key='ip', rate='5/m', block=True)
+
+
+
 class LoginView(APIView):
     def post(self, request):
         identifier = request.data.get("identifier")
@@ -223,6 +224,7 @@ class LoginView(APIView):
     
     
     
+    
 class LogoutView(APIView):
     def post(self, request):
         response = Response({
@@ -234,6 +236,8 @@ class LogoutView(APIView):
         response.delete_cookie("refresh_token")
 
         return response
+
+
 
 class RefreshTokenView(APIView):
     def post(self, request):

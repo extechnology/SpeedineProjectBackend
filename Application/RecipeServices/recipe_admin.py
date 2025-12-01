@@ -16,7 +16,7 @@ class RecipeStepInline(nested_admin.NestedStackedInline):
 # -------------------------------
 @admin.register(RecipeModel)
 class RecipeAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('title', 'description', 'ingredients', 'image')
+    list_display = ('title', 'subtitle', 'ingredients', 'image')
     search_fields = ('title', 'description')
 
 

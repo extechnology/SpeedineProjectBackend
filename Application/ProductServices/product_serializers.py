@@ -33,8 +33,8 @@ class ProductSerializer(serializers.ModelSerializer):
     ingredients = IngredientsSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     preparations = ProductPrepareSerializer(many=True, read_only=True)
-    # Assuming Category is defined elsewhere and has a __str__ or name field
     category_name = serializers.CharField(source='category.name', read_only=True)
+    category_id = serializers.CharField(source='category.unique_id', read_only=True)
 
     class Meta:
         model = ProductModel
@@ -43,5 +43,5 @@ class ProductSerializer(serializers.ModelSerializer):
             'category', 'category_name', 'is_offered', 'offer_price',
             'is_available', 'special_tags', 'special_offer', 'prepare_time',
             'difficulty_level', 'serving_count', 'rating', 'created_at',
-            'updated_at', 'ingredients', 'images', 'preparations'
+            'updated_at', 'ingredients', 'images', 'preparations','category_id','weight'
         ]

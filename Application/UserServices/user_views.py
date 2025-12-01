@@ -1,8 +1,12 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .user_models import UserCartModel, UserCartItemsModel
-from .user_serializers import UserCartSerializer, UserCartItemsSerializer
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel
+from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserCartSerializer
@@ -16,11 +20,14 @@ class CartViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(cart)
         return Response(serializer.data)
 
+
     @action(detail=False, methods=['post'])
     def clear(self, request):
         cart = UserCartModel.objects.get(user=request.user)
         cart.usercartitemsmodel_set.all().delete()
         return Response({'status': 'Cart cleared'}, status=status.HTTP_200_OK)
+
+
 
 class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = UserCartItemsSerializer
@@ -29,11 +36,11 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return UserCartItemsModel.objects.filter(user_cart__user=self.request.user)
 
+
     def perform_create(self, serializer):
         cart, created = UserCartModel.objects.get_or_create(user=self.request.user)
         product = serializer.validated_data['product']
         
-        # Check if item already exists in cart
         existing_item = UserCartItemsModel.objects.filter(user_cart=cart, product=product).first()
         
         if existing_item:
@@ -43,12 +50,12 @@ class CartItemViewSet(viewsets.ModelViewSet):
             serializer.save(user_cart=cart)
 
     def create(self, request, *args, **kwargs):
-        # Custom create to handle the response correctly if item existed
         cart, created = UserCartModel.objects.get_or_create(user=request.user)
         product_id = request.data.get('product_id')
         
         if product_id:
-             existing_item = UserCartItemsModel.objects.filter(user_cart=cart, product_id=product_id).first()
+             existing_item = UserCartItemsModel.objects.filter(user_cart=cart,product__unique_id=product_id).first()
+
              if existing_item:
                  quantity = int(request.data.get('quantity', 1))
                  existing_item.quantity += quantity
@@ -57,3 +64,17 @@ class CartItemViewSet(viewsets.ModelViewSet):
                  return Response(serializer.data, status=status.HTTP_200_OK)
         
         return super().create(request, *args, **kwargs)
+    
+    
+class ContactUsViewSet(viewsets.ModelViewSet):
+    queryset = ContactModel.objects.all()
+    serializer_class = ContactUsSerializer
+    
+    
+class CurrentUserAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

@@ -1,13 +1,19 @@
 from rest_framework import serializers
-from .user_models import UserCartModel, UserCartItemsModel
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel
 from ..ProductServices.product_serializers import ProductSerializer
 from ..ProductServices.product_models import ProductModel
+from ..models import User
+
 
 class UserCartItemsSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
-    product_id = serializers.PrimaryKeyRelatedField(
-        queryset=ProductModel.objects.all(), source='product', write_only=True
+    product_id = serializers.SlugRelatedField(
+        slug_field='unique_id',              
+        queryset=ProductModel.objects.all(),
+        source='product',
+        write_only=True
     )
+
     sub_total = serializers.SerializerMethodField()
 
     class Meta:
@@ -16,6 +22,8 @@ class UserCartItemsSerializer(serializers.ModelSerializer):
 
     def get_sub_total(self, obj):
         return obj.product.price * obj.quantity
+
+
 
 class UserCartSerializer(serializers.ModelSerializer):
     items = UserCartItemsSerializer(source='usercartitemsmodel_set', many=True, read_only=True)
@@ -34,3 +42,17 @@ class UserCartSerializer(serializers.ModelSerializer):
 
     def get_total_items(self, obj):
         return sum(item.quantity for item in obj.usercartitemsmodel_set.all())
+
+
+
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactModel 
+        fields = '__all__'
+        
+        
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
