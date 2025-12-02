@@ -75,15 +75,10 @@ class UserAddressSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source="product.name", read_only=True)
-    product_image = serializers.SerializerMethodField()
 
     class Meta:
         model = UserOrderItemsModel
-        fields = ["id", "product", "product_name", "product_image", "quantity", "price"]
-
-    def get_product_image(self, obj):
-        return obj.product.images.first().image_url if hasattr(obj.product, "images") else None
+        fields = '__all__'
 
 
 
@@ -93,22 +88,11 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrderModel
-        fields = [
-            "id",
-            "order_id",
-            "shipping_address",
-            "total_amount",
-            "discount_amount",
-            "final_amount",
-            "razorpay_order_id",
-            "is_paid",
-            "created",
-            "items"
-        ]
+        fields = '__all__'
 
 
 
 class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatus
-        fields = ["id", "status", "is_active", "created"]
+        fields = '__all__'

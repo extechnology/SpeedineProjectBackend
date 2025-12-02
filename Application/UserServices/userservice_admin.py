@@ -6,6 +6,7 @@ from .user_models import (
     UserOrderModel,
     UserOrderItemsModel,
     OrderStatus,
+    UserAddressModel,
 )
 
 # ================= CONTACT ==================
@@ -68,4 +69,11 @@ class OrderStatusAdmin(admin.ModelAdmin):
     list_display = ("order", "status", "is_active", "created")
     list_filter = ("is_active",)
     search_fields = ("order__order_id", "status")
+    ordering = ("-created",)
+
+
+@admin.register(UserAddressModel)
+class UserAddressAdmin(admin.ModelAdmin):
+    list_display = ("user", "address", "created", "updated")
+    search_fields = ("user__username", "address")
     ordering = ("-created",)

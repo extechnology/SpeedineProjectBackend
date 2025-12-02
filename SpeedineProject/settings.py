@@ -336,3 +336,8 @@ REDIS_DB = 0
 # --------------------------------------------------
 # Firebase Push Notification setup
 # --------------------------------------------------
+
+
+
+RAZORPAY_KEY_ID = "rzp_test_RmcyuTUo7jtgxV"
+RAZORPAY_KEY_SECRET = "AcR520eZv6RMFm5OwEBHtA2j"

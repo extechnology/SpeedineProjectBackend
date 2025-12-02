@@ -1,16 +1,19 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action,api_view
+
 from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
 from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer,OrderItemSerializer,OrderSerializer
+from Application.ProductServices.product_models import ProductModel
+
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from  Application.permissions import IsUserAuthenticated
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from rest_framework.generics import ListAPIView
-
+from django.conf import settings
+import razorpay
 
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
@@ -119,70 +122,86 @@ class UserAddressAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+def create_order(request):
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    user = request.user
+    user_order, created = UserOrderModel.objects.get_or_create(user=user) 
+    currency = "INR"
+    amount = request.data.get('amount')
+    order_items = request.data.get('order_items')
+    try:
+        if currency is None:
+            currency = "INR"
 
+        order_data = {
+            "amount": float(amount) * 100,  # Convert to paise
+            "currency": currency, 
+            "payment_capture": 1,  # Auto-capture payment
+        }
+    
+        order = client.order.create(data=order_data)
+        user_order.razorpay_order_id = order['id']
+        user_order.save()
 
-
-class CheckoutAPIView(APIView):
-    permission_classes = [IsUserAuthenticated]
-
-    @transaction.atomic
-    def post(self, request):
-        user = request.user
-        data = request.data
-
-        shipping_address_id = data.get("shipping_address")
-        cart_items = data.get("items")
-
-        if not cart_items:
-            return Response({"message": "Cart is empty"}, status=400)
-
-        order = UserOrderModel.objects.create(
-            user=user,
-            shipping_address_id=shipping_address_id
-        )
-
-        total = 0
-
-        for item in cart_items:
-            product = item["product"]
-            quantity = item["quantity"]
-            price = item["price"]
-
-            total += price * quantity
-
+        for item in order_items:
             UserOrderItemsModel.objects.create(
-                user_order=order,
-                product_id=product,
-                quantity=quantity,
-                price=price,
+                user_order=user_order,
+                product=ProductModel.objects.get(unique_id=item['product']['unique_id']),
+                quantity=item['quantity'],
+                price=item['sub_total'],
             )
 
-        order.total_amount = total
-        order.final_amount = total 
-        order.save()
-
-        OrderStatus.objects.create(order=order, status="pending", is_active=True)
-
-        return Response(OrderSerializer(order).data, status=201)
+        return Response({"order": order,"user_order":user_order}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class OrderListAPIView(ListAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = OrderSerializer
 
-    def get_queryset(self):
-        return UserOrderModel.objects.filter(user=self.request.user).order_by("-created")
+@api_view(["POST"])
+def verify_payment(request):
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    user = request.user
+    payment_response = request.data.get("response", {})
+
+    # Extract data from request
+    razorpay_order_id = payment_response.get("razorpay_order_id")
+    razorpay_payment_id = payment_response.get("razorpay_payment_id")
+    razorpay_signature = payment_response.get("razorpay_signature")
     
+    # Check for missing parameters
+    if not all([razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+        return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
 
-class UpdateOrderStatusAPIView(APIView):
-    permission_classes = [IsAuthenticated]
+    try:
+        # Verify the payment signature
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_signature": razorpay_signature,
+        })
 
-    def post(self, request, order_id):
-        order = UserOrderModel.objects.filter(order_id=order_id).first()
-        if not order:
-            return Response({"message": "Order not found"}, status=404)
+        # Fetch the corresponding order
+        try:
+            order = UserOrderModel.objects.get(razorpay_order_id=razorpay_order_id)
+        except UserOrderModel.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Order not found"}, status=404)
+    
+        order.is_paid = True
+        order.status = "confirmed"
+        order.save()
+    
+        return JsonResponse({"status": "success", "message": "Payment verified successfully"}, status=200)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-        status_name = request.data.get("status")
-        OrderStatus.objects.create(order=order, status=status_name, is_active=True)
 
-        return Response({"message": "Status updated"})
+
+class UserOrderAPIView(APIView):
+    permission_classes = [IsUserAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        orders = UserOrderModel.objects.filter(user=user).order_by('-created')
+        serializer = OrderSerializer(orders, many=True,context={'request': request})
+        return Response(serializer.data)

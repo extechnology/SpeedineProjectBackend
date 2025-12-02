@@ -85,6 +85,17 @@ class UserOrderModel(models.Model):
     razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
     is_paid = models.BooleanField(default=False)
 
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('shipped', 'Shipped'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
