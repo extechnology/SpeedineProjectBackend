@@ -1,11 +1,16 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel
-from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
+from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer,OrderItemSerializer,OrderSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from  Application.permissions import IsUserAuthenticated
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
+from rest_framework.generics import ListAPIView
+
 
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
@@ -83,9 +88,10 @@ class UserAddressAPIView(APIView):
     permission_classes = [IsUserAuthenticated]
 
     def get(self, request):
-        user = request.user
-        serializer = UserAddressSerializer(user)
+        addresses = UserAddressModel.objects.filter(user=request.user).order_by('-is_default', '-created')
+        serializer = UserAddressSerializer(addresses, many=True)
         return Response(serializer.data)
+
 
     def post(self, request):
         serializer = UserAddressSerializer(data=request.data)
@@ -94,10 +100,89 @@ class UserAddressAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pk):
-        address = UserAddressModel.objects.get(pk=pk)
-        serializer = UserAddressSerializer(address, data=request.data)
+
+    def patch(self, request, pk):
+        try:
+            address = UserAddressModel.objects.get(pk=pk, user=request.user)
+        except UserAddressModel.DoesNotExist:
+            return Response({"error": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+        if request.data.get("is_default") is True:
+            UserAddressModel.objects.filter(user=request.user).update(is_default=False)
+    
+        serializer = UserAddressSerializer(address, data=request.data, partial=True)
+    
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+    
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+class CheckoutAPIView(APIView):
+    permission_classes = [IsUserAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        user = request.user
+        data = request.data
+
+        shipping_address_id = data.get("shipping_address")
+        cart_items = data.get("items")
+
+        if not cart_items:
+            return Response({"message": "Cart is empty"}, status=400)
+
+        order = UserOrderModel.objects.create(
+            user=user,
+            shipping_address_id=shipping_address_id
+        )
+
+        total = 0
+
+        for item in cart_items:
+            product = item["product"]
+            quantity = item["quantity"]
+            price = item["price"]
+
+            total += price * quantity
+
+            UserOrderItemsModel.objects.create(
+                user_order=order,
+                product_id=product,
+                quantity=quantity,
+                price=price,
+            )
+
+        order.total_amount = total
+        order.final_amount = total 
+        order.save()
+
+        OrderStatus.objects.create(order=order, status="pending", is_active=True)
+
+        return Response(OrderSerializer(order).data, status=201)
+
+
+class OrderListAPIView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        return UserOrderModel.objects.filter(user=self.request.user).order_by("-created")
+    
+
+class UpdateOrderStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        order = UserOrderModel.objects.filter(order_id=order_id).first()
+        if not order:
+            return Response({"message": "Order not found"}, status=404)
+
+        status_name = request.data.get("status")
+        OrderStatus.objects.create(order=order, status=status_name, is_active=True)
+
+        return Response({"message": "Status updated"})

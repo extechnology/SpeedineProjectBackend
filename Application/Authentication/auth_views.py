@@ -151,6 +151,7 @@ class ResendOTPView(APIView):
            'errors': serializer.errors
          }, status=status.HTTP_400_BAD_REQUEST)
    
+   
 class VerifyOTPView(APIView):
     def post(self, request):
         serializer = EmailOTPVerifySerializer(data=request.data)

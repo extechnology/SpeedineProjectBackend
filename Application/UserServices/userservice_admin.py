@@ -35,7 +35,7 @@ class UserCartAdmin(admin.ModelAdmin):
 class OrderItemsInline(admin.TabularInline):
     model = UserOrderItemsModel
     extra = 0
-    readonly_fields = ("razorpay_order_id", "razorpay_payment_id", "razorpay_signature")
+    # readonly_fields = ("razorpay_order_id", "razorpay_payment_id", "razorpay_signature")
 
 
 # ================= USER ORDER ==================
@@ -54,11 +54,10 @@ class UserOrderItemsAdmin(admin.ModelAdmin):
         "user_order",
         "product",
         "quantity",
-        "total_price",
-        "is_paid",
+        "price",
         "created",
     )
-    list_filter = ("is_paid", "created")
+    list_filter = ("created",)
     search_fields = ("user_order__order_id", "product__name")
     ordering = ("-created",)
 

@@ -11,5 +11,4 @@ urlpatterns = [
     path('', include(router.urls)),
     path('current-user/', CurrentUserAPIView.as_view(), name='current-user'),
     path('user-address/', UserAddressAPIView.as_view(), name='user-address'),
-    path('user-address/<int:pk>/', UserAddressAPIView.as_view(), name='user-address'),
 ]
