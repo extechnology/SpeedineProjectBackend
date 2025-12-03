@@ -79,6 +79,7 @@ class UserOrderModel(models.Model):
     total_amount = models.FloatField(default=0.0)
     discount_amount = models.FloatField(default=0.0)
     final_amount = models.FloatField(default=0.0)
+    invoice = models.FileField(upload_to='invoices/', null=True, blank=True)
 
     razorpay_order_id = models.CharField(max_length=255, null=True, blank=True)
     razorpay_payment_id = models.CharField(max_length=255, null=True, blank=True)
