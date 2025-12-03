@@ -176,61 +176,56 @@ def create_order(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(["POST"])
 def verify_payment(request):
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     user = request.user
-    payment_response = request.data.get("response", {})
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-    # Extract data from request
-    razorpay_order_id = payment_response.get("razorpay_order_id")
-    razorpay_payment_id = payment_response.get("razorpay_payment_id")
-    razorpay_signature = payment_response.get("razorpay_signature")
-    
-    # Check for missing parameters
+    razorpay_order_id = request.data.get("razorpay_order_id")
+    razorpay_payment_id = request.data.get("razorpay_payment_id")
+    razorpay_signature = request.data.get("razorpay_signature")
+
     if not all([razorpay_order_id, razorpay_payment_id, razorpay_signature]):
-        return JsonResponse({"status": "error", "message": "Missing required fields"}, status=400)
+        return Response({"message": "Missing payment details"}, status=400)
 
     try:
-        # Verify the payment signature
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature,
         })
 
-        # Fetch the corresponding order
-        try:
-            order = UserOrderModel.objects.get(razorpay_order_id=razorpay_order_id)
-        except UserOrderModel.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Order not found"}, status=404)
-    
+        order = UserOrderModel.objects.get(razorpay_order_id=razorpay_order_id)
+
+        # Update payment status
         order.is_paid = True
         order.status = "confirmed"
+        order.razorpay_payment_id = razorpay_payment_id
+        order.razorpay_signature = razorpay_signature
         order.save()
 
-        invoice = generate_invoice_pdf(request, order.order_id)
+        # Create order status history
+        OrderStatus.objects.create(order=order, status="confirmed")
 
-        order.invoice = invoice
-        order.save()
-
+        # Remove ordered items from user's cart
         order_items = UserOrderItemsModel.objects.filter(user_order=order)
-        
-        user_cart = UserCartModel.objects.get(user=user)
-        
-        cart_items = UserCartItemsModel.objects.filter(user_cart=user_cart)
-        
-        order_product_ids = order_items.values_list('product_id', flat=True)
-        
-        UserCartItemsModel.objects.filter(
-            user_cart=user_cart,
-            product_id__in=order_product_ids
-        ).delete()
-        
-        return JsonResponse({"status": "success", "message": "Payment verified successfully"}, status=200)
+
+        try:
+            user_cart = UserCartModel.objects.get(user=user)
+            order_product_ids = order_items.values_list('product_id', flat=True)
+
+            UserCartItemsModel.objects.filter(
+                user_cart=user_cart,
+                product_id__in=order_product_ids
+            ).delete()
+
+        except UserCartModel.DoesNotExist:
+            pass  # No cart exists — ignore
+
+        return Response({"status": "success", "message": "Payment verified successfully"}, status=200)
+
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return Response({"status": "error", "message": str(e)}, status=500)
 
 
 
