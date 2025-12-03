@@ -78,22 +78,22 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def update_quantity(self, request, pk=None):
         cart_item = self.get_object()
         quantity = request.data.get("quantity")
-    
+
         try:
             quantity = int(quantity)
         except:
             return Response({"error": "Invalid quantity"}, status=400)
-    
+
         if quantity <= 0:
             cart_item.delete()
             return Response({"message": "Item removed"}, status=200)
-    
+
         cart_item.quantity = quantity
         cart_item.save()
-    
+
         serializer = self.get_serializer(cart_item)
         return Response(serializer.data, status=200)
-    
+
     
     
 class ContactUsViewSet(viewsets.ModelViewSet):
@@ -144,53 +144,83 @@ class UserAddressAPIView(APIView):
     
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 def create_order(request):
-    user = request.user
-    address_id = request.data.get("address_id")  
-    order_items = request.data.get("order_items")
-    amount = float(request.data.get("amount", 0))
-
-    # Calculate amounts
-    total_amount = amount
-    discount = 0   # if you apply coupons later
-    final_amount = total_amount - discount
-
-    shipping_address = UserAddressModel.objects.get(id=address_id)
-
+    # Prepare basic data
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    user = request.user
+    order_items = request.data.get("order_items", [])
 
-    razor_order = client.order.create({
-        "amount": int(final_amount * 100),
-        "currency": "INR",
-        "payment_capture": 1,
-    })
+    # Parse and validate amount
+    try:
+        total_amount = float(request.data.get("amount", 0))
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Create order in DB
-    user_order = UserOrderModel.objects.create(
-        user=user,
-        shipping_address=shipping_address,
-        total_amount=total_amount,
-        discount_amount=discount,
-        final_amount=final_amount,
-        razorpay_order_id=razor_order["id"]
-    )
+    discount = float(request.data.get("discount", 0)) if request.data.get("discount") is not None else 0.0
+    final_amount = max(total_amount - discount, 0.0)
 
-    # store ordered items
-    for item in order_items:
-        UserOrderItemsModel.objects.create(
-            user_order=user_order,
-            product=ProductModel.objects.get(unique_id=item['product']['unique_id']),
-            quantity=item['quantity'],
-            price=item['sub_total'],
+    # Resolve shipping address if provided
+    address_id = request.data.get("address_id")
+    shipping_address = None
+    if address_id:
+        try:
+            shipping_address = UserAddressModel.objects.get(id=address_id, user=user)
+        except UserAddressModel.DoesNotExist:
+            return Response({"error": "Shipping address not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Create order record in DB
+        user_order = UserOrderModel.objects.create(
+            user=user,
+            shipping_address=shipping_address,
+            total_amount=total_amount,
+            discount_amount=discount,
+            final_amount=final_amount,
         )
 
-    return Response({
-        "order": razor_order,
-        "user_order_id": str(user_order.order_id)
-    }, status=200)
+        # Create Razorpay order (amount in paise)
+        razorpay_order = client.order.create({
+            "amount": int(final_amount * 100),
+            "currency": "INR",
+            "payment_capture": 1,
+        })
 
+        user_order.razorpay_order_id = razorpay_order.get("id")
+        user_order.save()
+
+        # Store ordered items
+        for item in order_items:
+            product_info = item.get("product") or {}
+            product_uid = product_info.get("unique_id")
+            if not product_uid:
+                raise ProductModel.DoesNotExist
+
+            product = ProductModel.objects.get(unique_id=product_uid)
+            UserOrderItemsModel.objects.create(
+                user_order=user_order,
+                product=product,
+                quantity=item.get("quantity", 1),
+                price=item.get("sub_total", 0.0),
+            )
+
+        return Response({
+            "success": True,
+            "message": "Order created successfully",
+            "order_id": str(user_order.order_id),
+            "razorpay_order": razorpay_order
+        }, status=status.HTTP_200_OK)
+
+    except ProductModel.DoesNotExist:
+        user_order.delete()
+        return Response({"error": "Product not found in order items"}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        # If user_order exists, try to clean up
+        try:
+            user_order.delete()
+        except Exception:
+            pass
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -207,14 +237,12 @@ def verify_payment(request):
         return Response({"message": "Missing payment details"}, status=400)
 
     try:
-        # Verify Razorpay signature
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature,
         })
 
-        # Get matching order record
         order = UserOrderModel.objects.get(razorpay_order_id=razorpay_order_id)
 
         # Update payment status
@@ -257,3 +285,188 @@ class UserOrderAPIView(APIView):
         orders = UserOrderModel.objects.filter(user=user).order_by('-created')
         serializer = OrderSerializer(orders, many=True,context={'request': request})
         return Response(serializer.data)
+
+
+
+
+
+
+
+
+
+
+
+
+# views.py
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_RIGHT
+from io import BytesIO
+from datetime import datetime, timedelta
+
+def generate_invoice_pdf(request):
+    # Sample data
+    company = {
+        'name': 'Tech Solutions Inc.',
+        'address': '123 Business Street, Suite 100\nNew York, NY 10001',
+        'phone': '+1 (555) 123-4567',
+        'email': 'contact@techsolutions.com',
+        'logo_path': 'path/to/logo.png'  # Optional: set to None if no logo
+    }
+    
+    customer = {
+        'name': 'Acme Corporation',
+        'address': '456 Client Avenue\nLos Angeles, CA 90001',
+        'phone': '+1 (555) 987-6543',
+        'email': 'billing@acmecorp.com'
+    }
+    
+    invoice_info = {
+        'invoice_number': 'INV-2024-001',
+        'date': datetime.now().strftime('%B %d, %Y'),
+        'due_date': (datetime.now() + timedelta(days=30)).strftime('%B %d, %Y'),
+        'notes': 'Thank you for your business! Payment is due within 30 days.'
+    }
+    
+    # Invoice items
+    items = [
+        {'description': 'Web Development Services', 'quantity': 40, 'unit_price': 150.00},
+        {'description': 'UI/UX Design', 'quantity': 20, 'unit_price': 120.00},
+        {'description': 'SEO Optimization', 'quantity': 10, 'unit_price': 100.00},
+        {'description': 'Hosting & Maintenance', 'quantity': 1, 'unit_price': 500.00},
+    ]
+    
+    # Calculate totals
+    subtotal = sum(item['quantity'] * item['unit_price'] for item in items)
+    tax_rate = 0.08  # 8% tax
+    tax = subtotal * tax_rate
+    total = subtotal + tax
+    
+    # Create buffer
+    buffer = BytesIO()
+    
+    # Create PDF
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    right_align = ParagraphStyle(
+        'RightAlign',
+        parent=styles['Normal'],
+        alignment=TA_RIGHT,
+    )
+    
+    # Add logo if exists (optional)
+    # Uncomment and provide valid path if you have a logo
+    try:
+        logo = Image('Application\static\images\Speedine2.png', width=2*inch, height=1*inch)
+        logo.hAlign = 'LEFT'
+        elements.append(logo)
+        elements.append(Spacer(1, 0.3*inch))
+    except:
+        pass
+    
+    # Company info and Invoice title in table
+    header_data = [
+        [
+            Paragraph(f"<b><font size=14>{company['name']}</font></b><br/>{company['address']}<br/>{company['phone']}<br/>{company['email']}", styles['Normal']),
+            Paragraph(f"<b><font size=18 color='#2C3E50'>INVOICE</font></b><br/><br/><b>Invoice #:</b> {invoice_info['invoice_number']}<br/><b>Date:</b> {invoice_info['date']}<br/><b>Due Date:</b> {invoice_info['due_date']}", right_align)
+        ]
+    ]
+    
+    header_table = Table(header_data, colWidths=[3.5*inch, 3*inch])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+    ]))
+    elements.append(header_table)
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Customer info
+    elements.append(Paragraph("<b><font size=12>BILL TO:</font></b>", styles['Normal']))
+    elements.append(Spacer(1, 0.1*inch))
+    elements.append(Paragraph(f"<b>{customer['name']}</b><br/>{customer['address']}<br/>{customer['phone']}<br/>{customer['email']}", styles['Normal']))
+    elements.append(Spacer(1, 0.4*inch))
+    
+    # Invoice items table
+    items_data = [['Description', 'Quantity', 'Unit Price', 'Total']]
+    
+    for item in items:
+        item_total = item['quantity'] * item['unit_price']
+        items_data.append([
+            item['description'],
+            str(item['quantity']),
+            f"${item['unit_price']:.2f}",
+            f"${item_total:.2f}"
+        ])
+    
+    # Add totals
+    items_data.append(['', '', '', ''])
+    items_data.append(['', '', 'Subtotal:', f"${subtotal:.2f}"])
+    items_data.append(['', '', f'Tax ({int(tax_rate*100)}%):', f"${tax:.2f}"])
+    items_data.append(['', '', 'TOTAL:', f"${total:.2f}"])
+    
+    items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])
+    items_table.setStyle(TableStyle([
+        # Header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('TOPPADDING', (0, 0), (-1, 0), 12),
+        
+        # Data rows
+        ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, 1), (-1, -5), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -5), 1, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -5), [colors.white, colors.HexColor('#ECF0F1')]),
+        ('TOPPADDING', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
+        
+        # Total section
+        ('FONTNAME', (2, -3), (-1, -1), 'Helvetica-Bold'),
+        ('LINEABOVE', (2, -3), (-1, -3), 1, colors.black),
+        ('LINEABOVE', (2, -1), (-1, -1), 2, colors.black),
+        ('BACKGROUND', (2, -1), (-1, -1), colors.HexColor('#E8F6F3')),
+        ('FONTSIZE', (2, -1), (-1, -1), 12),
+    ]))
+    
+    elements.append(items_table)
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Notes
+    if invoice_info['notes']:
+        elements.append(Paragraph("<b>Notes:</b>", styles['Heading4']))
+        elements.append(Spacer(1, 0.1*inch))
+        elements.append(Paragraph(invoice_info['notes'], styles['Normal']))
+        elements.append(Spacer(1, 0.3*inch))
+    
+    # Footer
+    footer = Paragraph(
+        "<i>This is a computer-generated invoice. No signature required.</i>",
+        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
+    )
+    elements.append(footer)
+    
+    # Build PDF
+    doc.build(elements)
+    
+    # Get PDF value
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    # Create response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{invoice_info["invoice_number"]}.pdf"'
+    response.write(pdf)
+    
+    return response
+
