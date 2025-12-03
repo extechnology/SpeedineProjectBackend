@@ -74,6 +74,27 @@ class CartItemViewSet(viewsets.ModelViewSet):
         
         return super().create(request, *args, **kwargs)
     
+    @action(detail=True, methods=['patch'])
+    def update_quantity(self, request, pk=None):
+        cart_item = self.get_object()
+        quantity = request.data.get("quantity")
+    
+        try:
+            quantity = int(quantity)
+        except:
+            return Response({"error": "Invalid quantity"}, status=400)
+    
+        if quantity <= 0:
+            cart_item.delete()
+            return Response({"message": "Item removed"}, status=200)
+    
+        cart_item.quantity = quantity
+        cart_item.save()
+    
+        serializer = self.get_serializer(cart_item)
+        return Response(serializer.data, status=200)
+    
+    
     
 class ContactUsViewSet(viewsets.ModelViewSet):
     queryset = ContactModel.objects.all()
@@ -87,6 +108,7 @@ class CurrentUserAPIView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    
 
 class UserAddressAPIView(APIView):
     permission_classes = [IsUserAuthenticated]
@@ -174,8 +196,9 @@ def create_order(request):
 
 @api_view(["POST"])
 def verify_payment(request):
+    user = request.user
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-    
+
     razorpay_order_id = request.data.get("razorpay_order_id")
     razorpay_payment_id = request.data.get("razorpay_payment_id")
     razorpay_signature = request.data.get("razorpay_signature")
@@ -184,14 +207,17 @@ def verify_payment(request):
         return Response({"message": "Missing payment details"}, status=400)
 
     try:
+        # Verify Razorpay signature
         client.utility.verify_payment_signature({
             "razorpay_order_id": razorpay_order_id,
             "razorpay_payment_id": razorpay_payment_id,
             "razorpay_signature": razorpay_signature,
         })
 
+        # Get matching order record
         order = UserOrderModel.objects.get(razorpay_order_id=razorpay_order_id)
 
+        # Update payment status
         order.is_paid = True
         order.status = "confirmed"
         order.razorpay_payment_id = razorpay_payment_id
@@ -201,9 +227,26 @@ def verify_payment(request):
         # Create order status history
         OrderStatus.objects.create(order=order, status="confirmed")
 
-        return Response({"message": "Payment verified successfully"})
+        # Remove ordered items from user's cart
+        order_items = UserOrderItemsModel.objects.filter(user_order=order)
+
+        try:
+            user_cart = UserCartModel.objects.get(user=user)
+            order_product_ids = order_items.values_list('product_id', flat=True)
+
+            UserCartItemsModel.objects.filter(
+                user_cart=user_cart,
+                product_id__in=order_product_ids
+            ).delete()
+
+        except UserCartModel.DoesNotExist:
+            pass  # No cart exists — ignore
+
+        return Response({"status": "success", "message": "Payment verified successfully"}, status=200)
+
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        return Response({"status": "error", "message": str(e)}, status=500)
+
 
 
 class UserOrderAPIView(APIView):
