@@ -190,7 +190,20 @@ def verify_payment(request):
         order.is_paid = True
         order.status = "confirmed"
         order.save()
-    
+
+        order_items = UserOrderItemsModel.objects.filter(user_order=order)
+        
+        user_cart = UserCartModel.objects.get(user=user)
+        
+        cart_items = UserCartItemsModel.objects.filter(user_cart=user_cart)
+        
+        order_product_ids = order_items.values_list('product_id', flat=True)
+        
+        UserCartItemsModel.objects.filter(
+            user_cart=user_cart,
+            product_id__in=order_product_ids
+        ).delete()
+        
         return JsonResponse({"status": "success", "message": "Payment verified successfully"}, status=200)
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
