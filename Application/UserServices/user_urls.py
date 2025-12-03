@@ -28,6 +28,6 @@ urlpatterns = [
 
     path('user-order/', UserOrderAPIView.as_view(), name='user-order'),
 
-    path('invoice/generate/', generate_invoice_pdf, name='generate_invoice'),
+    # path('invoice/generate/<str:order_id>/', generate_invoice_pdf, name='generate_invoice'),
 
 ]
