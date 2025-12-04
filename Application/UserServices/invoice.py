@@ -10,6 +10,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_RIGHT
 from io import BytesIO
 from datetime import datetime, timedelta
+from rest_framework.decorators import api_view
+from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 # @api_view(['POST'])
 def generate_invoice_pdf(request, order_id):
@@ -93,90 +95,109 @@ def generate_invoice_pdf(request, order_id):
     # ... rest of your PDF generation code remains the same ...
     
     # Company info and Invoice title in table
+        # HEADER SECTION (Company + Invoice details)
     header_data = [
         [
-            Paragraph(f"<b><font size=14>{company['name']}</font></b><br/>{company['address']}<br/>{company['phone']}<br/>{company['email']}", styles['Normal']),
-            Paragraph(f"<b><font size=18 color='#2C3E50'>INVOICE</font></b><br/><br/><b>Invoice #:</b> {invoice_info['invoice_number']}<br/><b>Date:</b> {invoice_info['date']}<br/><b>Due Date:</b> {invoice_info['due_date']}", right_align)
+            Paragraph(
+                f"<b><font size=16>{company['name'].upper()}</font></b><br/>"
+                f"{company['address']}<br/>"
+                f"Phone: {company['phone']}<br/>"
+                f"Email: {company['email']}",
+                styles['Normal']
+            ),
+            Paragraph(
+                f"<b><font size=14>TAX INVOICE</font></b><br/><br/>"
+                f"<b>Invoice No :</b> {invoice_info['invoice_number']}<br/>"
+                f"<b>Invoice Date :</b> {invoice_info['date']}<br/>",
+                right_align
+            )
         ]
     ]
-    
-    header_table = Table(header_data, colWidths=[3.5*inch, 3*inch])
+
+    header_table = Table(header_data, colWidths=[4*inch, 3*inch])
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
     ]))
     elements.append(header_table)
-    elements.append(Spacer(1, 0.5*inch))
-    
-    # Customer info
-    elements.append(Paragraph("<b><font size=12>BILL TO:</font></b>", styles['Normal']))
-    elements.append(Spacer(1, 0.1*inch))
-    elements.append(Paragraph(f"<b>{customer['name']}</b><br/>{customer['address']}<br/>{customer['phone']}<br/>{customer['email']}", styles['Normal']))
-    elements.append(Spacer(1, 0.4*inch))
-    
-    # Invoice items table
-    items_data = [['Description', 'Quantity', 'Unit Price', 'Total']]
-    
+    elements.append(Spacer(1, 0.2*inch))
+
+    # BUYER DETAILS SECTION
+    buyer_table = Table([
+        [
+            Paragraph("<b>Buyer details</b><br/>"
+                      f"{customer['name']}<br/>{customer['address']}<br/>"
+                      f"Phone: {customer['phone']}<br/>Email: {customer['email']}",
+                      styles['Normal']),
+            Paragraph("<b>Order & despatch details</b><br/>"
+                      f"GST No : 32AKXPN6398M1Z1<br/>"
+                      f"FSSAI : 11324010000725",
+                      styles['Normal'])
+        ]
+    ], colWidths=[4*inch, 3*inch])
+
+    buyer_table.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, colors.black),
+        ('INNERGRID', (0, 0), (-1, -1), 0.6, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F2F3F4')),
+    ]))
+    elements.append(buyer_table)
+    elements.append(Spacer(1, 0.3*inch))
+
+    # ITEM TABLE
+    items_data = [[
+        'S/n', 'Item', 'HSN', 'Unit', 'Qty', 'Rate', 'Value',
+        'Tax%', 'CGST', 'SGST', 'Total'
+    ]]
+
+    sn = 1
     for item in items:
         item_total = item['quantity'] * item['unit_price']
+        cgst = (item_total * tax_rate) / 2
+        sgst = (item_total * tax_rate) / 2
+
         items_data.append([
-            item['description'],
-            str(item['quantity']),
-            f"${item['unit_price']:.2f}",
-            f"${item_total:.2f}"
+            sn, item['description'], '9109100', 'NOS', str(item['quantity']),
+            f"{item['unit_price']:.2f}", f"{item_total:.2f}",
+            f"{int(tax_rate*100)}%", f"{cgst:.2f}", f"{sgst:.2f}",
+            f"{item_total + cgst + sgst:.2f}"
         ])
-    
+        sn += 1
+
     # Add totals
-    items_data.append(['', '', '', ''])
-    items_data.append(['', '', 'Subtotal:', f"${subtotal:.2f}"])
-    items_data.append(['', '', f'Tax ({int(tax_rate*100)}%):', f"${tax:.2f}"])
-    items_data.append(['', '', 'TOTAL:', f"${total:.2f}"])
-    
-    items_table = Table(items_data, colWidths=[3*inch, 1*inch, 1.5*inch, 1.5*inch])
+    items_data.append(['', '', '', '', '', '', f"{subtotal:.2f}", '', f"{tax/2:.2f}", f"{tax/2:.2f}", f"{total:.2f}"])
+
+    items_table = Table(items_data, repeatRows=1)
     items_table.setStyle(TableStyle([
-        # Header
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3498DB')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('TOPPADDING', (0, 0), (-1, 0), 12),
-        
-        # Data rows
-        ('ALIGN', (1, 1), (-1, -1), 'RIGHT'),
-        ('FONTNAME', (0, 1), (-1, -5), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ('GRID', (0, 0), (-1, -5), 1, colors.grey),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -5), [colors.white, colors.HexColor('#ECF0F1')]),
-        ('TOPPADDING', (0, 1), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 8),
-        
-        # Total section
-        ('FONTNAME', (2, -3), (-1, -1), 'Helvetica-Bold'),
-        ('LINEABOVE', (2, -3), (-1, -3), 1, colors.black),
-        ('LINEABOVE', (2, -1), (-1, -1), 2, colors.black),
-        ('BACKGROUND', (2, -1), (-1, -1), colors.HexColor('#E8F6F3')),
-        ('FONTSIZE', (2, -1), (-1, -1), 12),
+        ('GRID', (0,0), (-1,-1), 0.8, colors.grey),
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#D6EAF8')),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
     ]))
-    
     elements.append(items_table)
-    elements.append(Spacer(1, 0.5*inch))
-    
-    # Notes
-    if invoice_info['notes']:
-        elements.append(Paragraph("<b>Notes:</b>", styles['Heading4']))
-        elements.append(Spacer(1, 0.1*inch))
-        elements.append(Paragraph(invoice_info['notes'], styles['Normal']))
-        elements.append(Spacer(1, 0.3*inch))
-    
-    # Footer
-    footer = Paragraph(
-        "<i>This is a computer-generated invoice. No signature required.</i>",
-        ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.grey, alignment=1)
-    )
-    elements.append(footer)
-    
+    elements.append(Spacer(1, 0.3*inch))
+
+    # Amount in words
+    elements.append(Paragraph(f"<b>Amount in words:</b> Six Hundred Seventy Four", styles['Normal']))
+    elements.append(Spacer(1, 0.3*inch))
+
+    # Bank + Declaration + Signature line
+    footer_table = Table([
+        [
+            Paragraph("<b>Bank details</b><br/>SBI KONDOTTY<br/>A/C No: 43418161591<br/>IFSC: SBIN0070311", styles['Normal']),
+            Paragraph("<b>DECLARATION:</b><br/>We declare that this invoice shows the actual price and particulars are true.", styles['Normal']),
+            Paragraph("<b>Authorized Signatory</b><br/><br/><br/><i>_________________</i>", right_align),
+        ]
+    ], colWidths=[2.5*inch, 3*inch, 1.5*inch])
+
+    footer_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+    ]))
+    elements.append(footer_table)
+    elements.append(Spacer(1, 0.2*inch))
+    elements.append(Paragraph("This is a computer generated invoice", right_align))
+
     # Build PDF
     doc.build(elements)
     
