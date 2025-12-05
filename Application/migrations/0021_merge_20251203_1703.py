@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('Application', '0019_userordermodel_invoice'),
-        ('Application', '0020_userordermodel_invoice'),
     ]
 
     operations = [
