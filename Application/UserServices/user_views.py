@@ -226,7 +226,6 @@ def create_order(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(["POST"])
 def verify_payment(request):
     user = request.user
@@ -271,7 +270,7 @@ def verify_payment(request):
             ).delete()
 
         except UserCartModel.DoesNotExist:
-            pass  
+            pass  # No cart exists — ignore
 
         return Response({"status": "success", "message": "Payment verified successfully"}, status=200)
 
