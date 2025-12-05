@@ -15,6 +15,7 @@ from rest_framework.generics import ListAPIView
 from django.conf import settings
 
 from .invoice import generate_invoice_pdf
+from .user_emails import order_confirmation_email
 
 import razorpay
 
@@ -212,6 +213,7 @@ def verify_payment(request):
         invoice = generate_invoice_pdf(request, order.order_id)
         order.invoice = invoice
         order.save()
+        order_confirmation_email(order)
         try:
             user_cart = UserCartModel.objects.get(user=user)
             order_product_ids = order_items.values_list('product_id', flat=True)
