@@ -209,8 +209,9 @@ def verify_payment(request):
 
         # Remove ordered items from user's cart
         order_items = UserOrderItemsModel.objects.filter(user_order=order)
-        generate_invoice_pdf(request, order.order_id)
-
+        invoice = generate_invoice_pdf(request, order.order_id)
+        order.invoice = invoice
+        order.save()
         try:
             user_cart = UserCartModel.objects.get(user=user)
             order_product_ids = order_items.values_list('product_id', flat=True)
