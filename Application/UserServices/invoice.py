@@ -58,7 +58,7 @@ def generate_invoice_pdf(request, order_id):
             'description': product.name,  # Get product name
             'quantity': item.quantity,
             'unit_price': item.price,
-            'image': first_image.url if first_image else None,  # Adjust based on your image field
+            'image': first_image,
         })
         total += item.quantity * item.price
 
