@@ -4,7 +4,7 @@ from django.conf import settings
 
 def order_confirmation_email(order):
     subject = f"Order Confirmed - #{order.order_id}"
-    to_email = [order.user.email]  # should be list
+    to_email = [order.shipping_address.email]  # should be list
     from_email = settings.EMAIL_HOST_USER
 
     text_content = f"Your order #{order.order_id} has been confirmed. Total Amount: ₹{order.final_amount}"
@@ -51,10 +51,10 @@ def order_confirmation_email(order):
     msg.attach_alternative(html_content, "text/html")
 
     # Attach Invoice PDF (assuming binary file already stored in order.invoice_pdf)
-    if order.invoice_pdf:
+    if order.invoice:
         msg.attach(
             filename=f"Invoice_{order.order_id}.pdf",
-            content=order.invoice_pdf.read(),  # Read binary PDF data
+            content=order.invoice.read(),  # Read binary PDF data
             mimetype="application/pdf"
         )
 
