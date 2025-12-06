@@ -16,7 +16,9 @@ from django.http import FileResponse
 
 from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
-# @api_view(['POST'])
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 def generate_invoice_pdf(request, order_id):
     user = request.user
 
