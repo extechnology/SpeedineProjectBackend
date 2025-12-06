@@ -11,6 +11,9 @@ from reportlab.lib.enums import TA_RIGHT
 from io import BytesIO
 from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
+from django.http import FileResponse
+
+
 from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 # @api_view(['POST'])
@@ -201,9 +204,10 @@ def generate_invoice_pdf(request, order_id):
     # Build PDF
     doc.build(elements)
     
-    # Get PDF value
-    pdf = buffer.getvalue()
-    buffer.close()
+    # Return PDF
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True,
+                        filename=f"invoice_{invoice_info['invoice_number']}.pdf")
     
     # Create response
     response = HttpResponse(content_type='application/pdf')
