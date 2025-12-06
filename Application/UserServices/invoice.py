@@ -25,7 +25,7 @@ def generate_invoice_pdf(request, order_id):
     order = UserOrderModel.objects.get(order_id=order_id)
     # Don't use .values() - keep as QuerySet of model objects
     order_items = UserOrderItemsModel.objects.filter(user_order=order).select_related('product')
-    user_address = UserAddressModel.objects.get(user=user)
+    user_address = order.shipping_address
 
     company = {
         'name': 'SpeeDine',
