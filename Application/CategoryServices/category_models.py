@@ -8,7 +8,8 @@ class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
     priority = models.PositiveIntegerField(default=0)
-    
+    image = models.ImageField(upload_to='category_images/', blank=True, null=True)
+    display_name= models.CharField(max_length=255, blank=True, null=True)
     
     is_available = models.BooleanField(default=True)
     special_tags = models.CharField(max_length=255, blank=True, null=True)
