@@ -218,6 +218,7 @@ def verify_payment(request):
             ContentFile(pdf_file),
             save=True
         )
+        
 
         order_confirmation_email(order)
         try:
