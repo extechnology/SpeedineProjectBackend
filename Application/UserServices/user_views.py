@@ -18,6 +18,7 @@ from .invoice import generate_invoice_pdf
 from .user_emails import order_confirmation_email
 
 import razorpay
+from django.core.files.base import ContentFile
 
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
