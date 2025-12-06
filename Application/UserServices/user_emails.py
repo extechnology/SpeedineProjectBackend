@@ -50,11 +50,11 @@ def order_confirmation_email(order):
     msg = EmailMultiAlternatives(subject, text_content, from_email, to_email)
     msg.attach_alternative(html_content, "text/html")
 
-    # Attach Invoice PDF (assuming binary file already stored in order.invoice_pdf)
-    if order.invoice_pdf:
+    # Attach Invoice PDF (assuming binary file already stored in order.invoice)
+    if order.invoice:
         msg.attach(
             filename=f"Invoice_{order.order_id}.pdf",
-            content=order.invoice_pdf.read(),  # Read binary PDF data
+            content=order.invoice.read(),  # Read binary PDF data
             mimetype="application/pdf"
         )
 

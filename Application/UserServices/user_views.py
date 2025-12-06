@@ -19,7 +19,7 @@ from .invoice import generate_invoice_pdf
 from .user_emails import order_confirmation_email
 
 import razorpay
-from django.http import JsonResponse
+from django.core.files.base import ContentFile
 
 
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
@@ -268,6 +268,7 @@ def verify_payment(request):
             ContentFile(pdf_file),
             save=True
         )
+        
 
         order_confirmation_email(order)
         try:
