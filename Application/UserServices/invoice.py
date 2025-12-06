@@ -205,16 +205,7 @@ def generate_invoice_pdf(request, order_id):
 
     # Build PDF
     doc.build(elements)
-    
-    # Return PDF
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True,
-                        filename=f"invoice_{invoice_info['invoice_number']}.pdf")
-    
-    # Create response
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="invoice_{invoice_info["invoice_number"]}.pdf"'
-    response.write(pdf)
-    
-    return response
+    pdf = buffer.getvalue()
+    buffer.close()
+    return pdf    
 
