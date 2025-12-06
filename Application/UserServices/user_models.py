@@ -1,9 +1,8 @@
 from django.db import models
-
-
 from ..models import User
-
 import uuid
+
+
 
 class ContactModel(models.Model):
     name = models.CharField(max_length=255)
