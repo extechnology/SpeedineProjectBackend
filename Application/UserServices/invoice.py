@@ -166,7 +166,7 @@ def generate_invoice_pdf(request, order_id):
         items_data.append([
             sn, item['description'], '9109100', 'NOS', str(item['quantity']),
             f"{item['unit_price']:.2f}", f"{item_total:.2f}",
-            f"{int(tax_rate*100)}%", f"Included", f"Included",
+            f"{int(tax_rate*100)}%", 'Included', 'Included',
             f"{item_total}"
         ])
         sn += 1
