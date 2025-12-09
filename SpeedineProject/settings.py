@@ -100,8 +100,13 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'connect_timeout': 60,
+        },
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
