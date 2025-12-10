@@ -20,8 +20,6 @@ from django.views.decorators.csrf import csrf_exempt
 from Application.UIServices.ui_models import CompnayLogo
 
 
-logo = CompnayLogo.objects.first()
-
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
     user = request.user
@@ -31,12 +29,15 @@ def generate_invoice_pdf(request, order_id):
     order_items = UserOrderItemsModel.objects.filter(user_order=order).select_related('product')
     user_address = order.shipping_address
 
+    logo_obj = CompnayLogo.objects.first()
+    logo_path = logo_obj.image.url if logo_obj else None
+
     company = {
         'name': 'SpeeDine',
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': logo.image.url
+        'logo_path': logo_path
     }
 
     customer = {
