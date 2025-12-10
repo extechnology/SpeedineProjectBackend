@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
 from django.http import FileResponse
 
+from django.conf import settings
+import os
 
 from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
@@ -32,7 +34,7 @@ def generate_invoice_pdf(request, order_id):
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': r'Application\static\images\Speedine2.png'  # Use raw string
+        'logo_path': os.path.join(settings.BASE_DIR, 'Application', 'static', 'images', 'Speedine2.png')
     }
 
     customer = {
