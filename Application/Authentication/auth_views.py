@@ -481,7 +481,7 @@ class GoogleAuthView(APIView):
             return Response({"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience="YOUR_GOOGLE_CLIENT_ID")
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience="933629412968-6ap8h0f5repil5akr2reubfnl5qmbt3m.apps.googleusercontent.com")
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
