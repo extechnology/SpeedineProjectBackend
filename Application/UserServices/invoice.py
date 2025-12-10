@@ -13,10 +13,12 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
 from django.http import FileResponse
 
-
 from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
+
+
+
 
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
@@ -32,7 +34,7 @@ def generate_invoice_pdf(request, order_id):
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': r'Application\static\images\Speedine2.png'  # Use raw string
+        'logo_path': 'Application/static/images/Speedine2.png'
     }
 
     customer = {
@@ -90,7 +92,7 @@ def generate_invoice_pdf(request, order_id):
     
     # Add logo if exists (use raw string or forward slashes)
     try:
-        logo = Image(r'Application\static\images\Speedine2.png', width=2*inch, height=1*inch)
+        logo = Image('Application/static/images/Speedine2.png', width=2*inch, height=1*inch)
         logo.hAlign = 'LEFT'
         elements.append(logo)
         elements.append(Spacer(1, 0.3*inch))

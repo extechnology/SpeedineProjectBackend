@@ -39,6 +39,27 @@ class ProductModel(models.Model):
     def __str__(self):
         return self.name
 
+class ProductWeightModel(models.Model):
+    product = models.ForeignKey(ProductModel, on_delete=models.CASCADE, related_name='weights')
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    weight = models.CharField(max_length=100, blank=True, null=True)
+
+    is_offered = models.BooleanField(default=False)
+    offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    is_available = models.BooleanField(default=True)
+    special_tags = models.CharField(max_length=255, blank=True, null=True)
+    special_offer = models.CharField(max_length=255, blank=True, null=True)
+
+    serving_count = models.CharField(max_length=100, blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.weight} ({self.product.name})"
+
 
 class IngredientsModel(models.Model):
     product = models.ForeignKey(ProductModel, on_delete=models.CASCADE, related_name='ingredients')
