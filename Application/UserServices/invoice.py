@@ -20,6 +20,15 @@ from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
 
+logo_path = os.path.join(settings.BASE_DIR, 'Application', 'static', 'images', 'Speedine2.png')
+
+# Debug: Check if file exists
+if os.path.exists(logo_path):
+    print(f"File found at: {logo_path}")
+else:
+    print(f"File NOT found at: {logo_path}")
+    print(f"BASE_DIR is: {settings.BASE_DIR}")
+
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
     user = request.user
@@ -34,7 +43,7 @@ def generate_invoice_pdf(request, order_id):
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': os.path.join(settings.BASE_DIR, 'Application', 'static', 'images', 'Speedine2.png')
+        'logo_path': logo_path
     }
 
     customer = {
