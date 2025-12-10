@@ -5,7 +5,7 @@ from datetime import timedelta
 from ..models import User 
 
 class RegistrationOTP(models.Model):
-    identifier = models.CharField(max_length=255)  # can be email or phone
+    identifier = models.CharField(max_length=255)  
     otp = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     

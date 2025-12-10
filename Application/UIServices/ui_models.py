@@ -19,6 +19,7 @@ class ThumbNail ( models.Model):
     title= models.CharField(max_length =100)
     image = models.ImageField()
     description = models.CharField(max_length = 200)
+    video_url = models.URLField(default='', blank=True, null=True)
     
     created = models.DateTimeField(auto_now_add=True,blank=True,null=True)
     updated = models.DateTimeField(auto_now=True,blank=True,null=True)

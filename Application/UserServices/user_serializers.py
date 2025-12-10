@@ -75,6 +75,7 @@ class UserAddressSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
 
     class Meta:
         model = UserOrderItemsModel

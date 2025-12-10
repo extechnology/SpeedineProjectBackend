@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from rest_framework.generics import ListAPIView
 from django.conf import settings
+from django.core.files.base import ContentFile
 
 from .invoice import generate_invoice_pdf
 from .user_emails import order_confirmation_email
@@ -78,6 +79,27 @@ class CartItemViewSet(viewsets.ModelViewSet):
         
         return super().create(request, *args, **kwargs)
     
+    @action(detail=True, methods=['patch'])
+    def update_quantity(self, request, pk=None):
+        cart_item = self.get_object()
+        quantity = request.data.get("quantity")
+
+        try:
+            quantity = int(quantity)
+        except:
+            return Response({"error": "Invalid quantity"}, status=400)
+
+        if quantity <= 0:
+            cart_item.delete()
+            return Response({"message": "Item removed"}, status=200)
+
+        cart_item.quantity = quantity
+        cart_item.save()
+
+        serializer = self.get_serializer(cart_item)
+        return Response(serializer.data, status=200)
+
+    
     
 class ContactUsViewSet(viewsets.ModelViewSet):
     queryset = ContactModel.objects.all()
@@ -91,6 +113,7 @@ class CurrentUserAPIView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    
 
 class UserAddressAPIView(APIView):
     permission_classes = [IsUserAuthenticated]
@@ -128,53 +151,80 @@ class UserAddressAPIView(APIView):
 
 @api_view(['POST'])
 def create_order(request):
+    # Prepare basic data
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
-
     user = request.user
-    amount = request.data.get("amount")
     order_items = request.data.get("order_items", [])
+
+    # Parse and validate amount
+    try:
+        total_amount = float(request.data.get("amount", 0))
+    except (TypeError, ValueError):
+        return Response({"error": "Invalid amount"}, status=status.HTTP_400_BAD_REQUEST)
+
+    discount = float(request.data.get("discount", 0)) if request.data.get("discount") is not None else 0.0
+    final_amount = max(total_amount - discount, 0.0)
+
+    # Resolve shipping address if provided
     address_id = request.data.get("address_id")
+    shipping_address = None
+    if address_id:
+        try:
+            shipping_address = UserAddressModel.objects.get(id=address_id, user=user)
+        except UserAddressModel.DoesNotExist:
+            return Response({"error": "Shipping address not found"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        # Step 1: Create Order in Django
+        # Create order record in DB
         user_order = UserOrderModel.objects.create(
             user=user,
-            shipping_address_id=address_id,
-            total_amount=amount,
-            discount_amount=0.0,   # if any coupon logic later
-            final_amount=amount,   # initial same as total
+            shipping_address=shipping_address,
+            total_amount=total_amount,
+            discount_amount=discount,
+            final_amount=final_amount,
         )
 
-        # Step 2: Create Razorpay Order
+        # Create Razorpay order (amount in paise)
         razorpay_order = client.order.create({
-            "amount": float(amount) * 100,  # Razorpay takes paise
+            "amount": int(final_amount * 100),
             "currency": "INR",
-            "payment_capture": 1
+            "payment_capture": 1,
         })
 
-        user_order.razorpay_order_id = razorpay_order["id"]
+        user_order.razorpay_order_id = razorpay_order.get("id")
         user_order.save()
 
-        # Step 3: Save Order Item Records
+        # Store ordered items
         for item in order_items:
+            product_info = item.get("product") or {}
+            product_uid = product_info.get("unique_id")
+            if not product_uid:
+                raise ProductModel.DoesNotExist
+
+            product = ProductModel.objects.get(unique_id=product_uid)
             UserOrderItemsModel.objects.create(
                 user_order=user_order,
-                product=ProductModel.objects.get(unique_id=item["product"]["unique_id"]),
-                quantity=item["quantity"],
-                price=item["sub_total"]    # storing snapshot price
+                product=product,
+                quantity=item.get("quantity", 1),
+                price=item.get("sub_total", 0.0),
             )
 
-        # Step 4: Response back to frontend
         return Response({
             "success": True,
             "message": "Order created successfully",
-            "order_id": user_order.order_id,
+            "order_id": str(user_order.order_id),
             "razorpay_order": razorpay_order
         }, status=status.HTTP_200_OK)
 
     except ProductModel.DoesNotExist:
-        return Response({"error": "Product not found"}, status=status.HTTP_400_BAD_REQUEST)
+        user_order.delete()
+        return Response({"error": "Product not found in order items"}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
+        # If user_order exists, try to clean up
+        try:
+            user_order.delete()
+        except Exception:
+            pass
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
