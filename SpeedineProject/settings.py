@@ -100,9 +100,13 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='3306'),
+        'CONN_MAX_AGE': 300,  # <-- FIX: Prevents MySQL timeouts
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'connect_timeout': 60,
+            'charset': 'utf8mb4',        # <-- FIX: Prevent encoding disconnect issues
+            'use_unicode': True,
+            'autocommit': True,          # <-- FIX: Prevents MySQL connection drops
         },
     }
 }
