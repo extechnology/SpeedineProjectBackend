@@ -22,13 +22,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 logo_path = os.path.join(settings.STATIC_ROOT, 'images', 'Speedine2.png')
 
+from .ui_models import CompnayLogo
 
-# Debug: Check if file exists
-if os.path.exists(logo_path):
-    print(f"File found at: {logo_path}")
-else:
-    print(f"File NOT found at: {logo_path}")
-    print(f"BASE_DIR is: {settings.BASE_DIR}")
+
+logo = CompnayLogo.objects.first()
 
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
@@ -44,7 +41,7 @@ def generate_invoice_pdf(request, order_id):
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': logo_path
+        'logo_path': logo.image.url
     }
 
     customer = {
