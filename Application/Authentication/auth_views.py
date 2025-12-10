@@ -35,7 +35,7 @@ from .auth_utils import get_user_from_request
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
-
+from django.conf import settings
 
 # ---------------------------------------- Authentication Views --------------------------------------------------------------
 
@@ -472,7 +472,7 @@ class ChangePasswordView(APIView):
     
 # ---------------------------------------- End of Authentication Views --------------------------------------------------------------
 
-
+GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
 class GoogleAuthView(APIView):
     def post(self, request):
         token = request.data.get("token")
@@ -481,7 +481,7 @@ class GoogleAuthView(APIView):
             return Response({"message": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience="YOUR_GOOGLE_CLIENT_ID")
+            idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), audience="GOOGLE_CLIENT_ID")
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
