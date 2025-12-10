@@ -13,14 +13,9 @@ from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
 from django.http import FileResponse
 
-from django.conf import settings
-import os
-
 from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
-
-logo_path = os.path.join(settings.STATIC_ROOT, 'images', 'Speedine2.png')
 
 from .ui_models import CompnayLogo
 
