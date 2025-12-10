@@ -37,7 +37,7 @@ def generate_invoice_pdf(request, order_id):
         'address': 'Malappuram, Kerala, India 673633',
         'phone': '+91 99917 07787',
         'email': 'speedine.in@gmail.com',
-        'logo_path': logo_path
+        'logo_path': 'https://speedine.in/speedine_logo.png'
     }
 
     customer = {
