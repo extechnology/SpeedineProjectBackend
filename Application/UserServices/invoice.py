@@ -17,7 +17,7 @@ from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
 
-from .ui_models import CompnayLogo
+from Application.UIServices.ui_models import CompnayLogo
 
 
 logo = CompnayLogo.objects.first()
