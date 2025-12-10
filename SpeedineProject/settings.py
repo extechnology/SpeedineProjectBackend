@@ -92,7 +92,6 @@ WSGI_APPLICATION = 'SpeedineProject.wsgi.application'
 # }
 
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -101,21 +100,9 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='localhost'),
         'PORT': config('DB_PORT', default='3306'),
-
-        # Keeps connections alive
-        'CONN_MAX_AGE': 300000000000000000000000000000000000000000000000000000000000600,
-
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'connect_timeout': 60,
-            'charset': 'utf8mb4',
-            'use_unicode': True,
-
-            # **IMPORTANT FIX**
-            'autocommit': True,
-            'read_timeout': 300000000000000000000000000000000000000000000000000000000000600,
-            'write_timeout': 300000000000000000000000000000000000000000000000000000000000600,
-        },
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
 
