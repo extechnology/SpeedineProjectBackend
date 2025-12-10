@@ -20,7 +20,8 @@ from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
 
-logo_path = os.path.join(settings.BASE_DIR, 'Application', 'static', 'images', 'Speedine2.png')
+logo_path = os.path.join(settings.STATIC_ROOT, 'images', 'Speedine2.png')
+
 
 # Debug: Check if file exists
 if os.path.exists(logo_path):
