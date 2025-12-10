@@ -496,11 +496,10 @@ class GoogleAuthView(APIView):
 
             response = Response({
                 'message': 'Login successful',
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh)
             }, status=status.HTTP_200_OK)
-
-            response.set_cookie("access_token", str(refresh.access_token), httponly=True, secure=True, samesite='None', max_age=360000)
-            response.set_cookie("refresh_token", str(refresh), httponly=True, secure=True, samesite='None', max_age=7 * 24 * 360000)
-
+            
             return response
 
         except ValueError as e:
