@@ -1,13 +1,13 @@
 from rest_framework import serializers
 from .user_models import UserCartModel, UserCartItemsModel,ContactModel,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
 from ..ProductServices.product_serializers import ProductSerializer
-from ..ProductServices.product_models import ProductModel
+from ..ProductServices.product_models import ProductModel,ProductWeightModel
 from ..models import User
 
 
 class UserCartItemsSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
-    product_id = serializers.SlugRelatedField(
+    product_id =serializers.SlugRelatedField(
         slug_field='unique_id',              
         queryset=ProductModel.objects.all(),
         source='product',
@@ -21,7 +21,8 @@ class UserCartItemsSerializer(serializers.ModelSerializer):
         fields = ['id', 'product', 'product_id', 'quantity', 'sub_total','weight']
 
     def get_sub_total(self, obj):
-        return obj.weight.price * obj.quantity
+        weight = ProductWeightModel.objects.get(id=obj.weight_id)
+        return weight.price * obj.quantity
 
 
 

@@ -4,7 +4,7 @@ from rest_framework.decorators import action,api_view
 
 from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
 from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer,OrderItemSerializer,OrderSerializer
-from Application.ProductServices.product_models import ProductModel
+from Application.ProductServices.product_models import ProductModel,ProductWeightModel
 
 from rest_framework.views import APIView
 from  Application.permissions import IsUserAuthenticated
@@ -54,10 +54,11 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         cart, created = UserCartModel.objects.get_or_create(user=self.request.user)
         product = serializer.validated_data['product']
+        weight = serializer.validated_data['weight']
         
-        existing_item = UserCartItemsModel.objects.filter(user_cart=cart, product=product).first()
+        existing_item = UserCartItemsModel.objects.filter(user_cart=cart, product=product, weight=weight).first()
         
-        if existing_item:
+        if existing_item:   
             existing_item.quantity += serializer.validated_data.get('quantity', 1)
             existing_item.save()
         else:
@@ -66,9 +67,10 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         cart, created = UserCartModel.objects.get_or_create(user=request.user)
         product_id = request.data.get('product_id')
+        weight = request.data.get('weight')
         
-        if product_id:
-             existing_item = UserCartItemsModel.objects.filter(user_cart=cart,product__unique_id=product_id).first()
+        if product_id and weight:
+             existing_item = UserCartItemsModel.objects.filter(user_cart=cart,product__unique_id=product_id,weight=weight).first()
 
              if existing_item:
                  quantity = int(request.data.get('quantity', 1))

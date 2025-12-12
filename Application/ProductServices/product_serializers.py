@@ -44,9 +44,9 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductModel
         fields = [
-            'unique_id', 'name', 'description', 'price', 'old_price',
-            'category', 'category_name', 'is_offered', 'offer_price',
-            'is_available', 'special_tags', 'special_offer', 'prepare_time',
-            'difficulty_level', 'serving_count', 'rating', 'created_at',
-            'updated_at', 'ingredients', 'images', 'preparations','category_id','weight','weights'
+            'unique_id', 'name', 'description',
+            'category', 'category_name', 
+            'is_available', 'prepare_time',
+            'difficulty_level', 'rating', 'created_at',
+            'updated_at', 'ingredients', 'images', 'preparations','category_id','weights'
         ]
