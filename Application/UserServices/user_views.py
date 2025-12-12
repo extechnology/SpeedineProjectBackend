@@ -188,7 +188,7 @@ def create_order(request):
 
         # Create Razorpay order (amount in paise)
         razorpay_order = client.order.create({
-            "amount": int(final_amount * 100),
+            "amount": int(final_amount * 1000),
             "currency": "INR",
             "payment_capture": 1,
         })
