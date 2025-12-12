@@ -52,7 +52,7 @@ class ProductWeightInline(nested_admin.NestedStackedInline):
 # -------------------------------
 @admin.register(ProductModel)
 class ProductAdmin(nested_admin.NestedModelAdmin):
-    list_display = ('name', 'price', 'is_available', 'rating')
+    list_display = ('name', 'is_available', 'rating')
     search_fields = ('name',)
     list_filter = ('category', 'is_available', 'is_offered')
 

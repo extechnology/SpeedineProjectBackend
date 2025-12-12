@@ -8,18 +8,17 @@ class ProductModel(models.Model):
     unique_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True) 
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    weight = models.CharField(max_length=100, blank=True, null=True)
+    # price = models.DecimalField(max_digits=10, decimal_places=2)
+    # old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     
     is_offered = models.BooleanField(default=False)
-    offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
     is_available = models.BooleanField(default=True)
-    special_tags = models.CharField(max_length=255, blank=True, null=True)
-    special_offer = models.CharField(max_length=255, blank=True, null=True)
+    # special_tags = models.CharField(max_length=255, blank=True, null=True)
+    # special_offer = models.CharField(max_length=255, blank=True, null=True)
     
     prepare_time = models.PositiveIntegerField(help_text="Preparation time in minutes", default=0)
     DIFFICULTY_CHOICES = [
@@ -29,7 +28,7 @@ class ProductModel(models.Model):
     ]
     difficulty_level = models.CharField(max_length=100, choices=DIFFICULTY_CHOICES, default='Easy')
     
-    serving_count = models.CharField(max_length=100, blank=True, null=True)
+    # serving_count = models.CharField(max_length=100, blank=True, null=True)
     
     rating = models.FloatField(default=0.0)
     
@@ -41,9 +40,9 @@ class ProductModel(models.Model):
 
 class ProductWeightModel(models.Model):
     product = models.ForeignKey(ProductModel, on_delete=models.CASCADE, related_name='weights')
+    weight = models.CharField(max_length=100, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     old_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    weight = models.CharField(max_length=100, blank=True, null=True)
 
     is_offered = models.BooleanField(default=False)
     offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

@@ -25,6 +25,7 @@ class UserCartModel(models.Model):
         return f"{self.user} - {self.cart_id}"
 
 
+
 class UserCartItemsModel(models.Model):
     user_cart = models.ForeignKey(UserCartModel, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey('Application.ProductModel', on_delete=models.CASCADE, related_name='cart_items')
