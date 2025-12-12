@@ -200,6 +200,7 @@ def create_order(request):
         for item in order_items:
             product_info = item.get("product") or {}
             product_uid = product_info.get("unique_id")
+            weight_id = product_info.get("weight")
             if not product_uid:
                 raise ProductModel.DoesNotExist
 
@@ -207,6 +208,7 @@ def create_order(request):
             UserOrderItemsModel.objects.create(
                 user_order=user_order,
                 product=product,
+                weight=weight_id,
                 quantity=item.get("quantity", 1),
                 price=item.get("sub_total", 0.0),
             )

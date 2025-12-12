@@ -7,8 +7,9 @@ from ..models import User
 
 class UserCartItemsSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
-    product_id =serializers.SlugRelatedField(
-        slug_field='unique_id',              
+
+    product_id = serializers.SlugRelatedField(
+        slug_field='unique_id',
         queryset=ProductModel.objects.all(),
         source='product',
         write_only=True
@@ -18,12 +19,12 @@ class UserCartItemsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCartItemsModel
-        fields = ['id', 'product', 'product_id', 'quantity', 'sub_total','weight']
+        fields = ['id', 'product', 'product_id', 'quantity', 'sub_total', 'weight']
 
     def get_sub_total(self, obj):
-        weight = ProductWeightModel.objects.get(id=obj.weight_id)
-        return weight.price * obj.quantity
-
+        if obj.weight is None:
+            return 0
+        return obj.weight.price * obj.quantity
 
 
 class UserCartSerializer(serializers.ModelSerializer):
@@ -38,13 +39,14 @@ class UserCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCartModel
-        fields = ['cart_id', 'items', 'total_price', 'total_items','weight']
+        fields = ['cart_id', 'items', 'total_price', 'total_items']
 
     def get_total_price(self, obj):
         total = 0
+        print(obj.cart_items.all())
         for item in obj.cart_items.all():
-
-            total += item.weight.price * item.quantity
+            weight = ProductWeightModel.objects.get(id=item.weight_id)
+            total += weight.price * item.quantity
         return total
 
     def get_total_items(self, obj):
