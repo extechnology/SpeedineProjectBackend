@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .product_models import ProductModel, ProductImageModel, ProductPrepareModel, ProductPrepareStepsModel, IngredientsModel, CustomerReviewModel
+from .product_models import ProductModel, ProductImageModel, ProductPrepareModel, ProductPrepareStepsModel, ProductWeightModel, IngredientsModel, CustomerReviewModel
 import nested_admin
 
 
@@ -39,6 +39,13 @@ class ProductImageInline(nested_admin.NestedStackedInline):
     extra = 1
     fk_name = 'product'
 
+# -------------------------------
+# Inline for Product Weights
+# -------------------------------
+class ProductWeightInline(nested_admin.NestedStackedInline):
+    model = ProductWeightModel
+    extra = 1
+    fk_name = 'product'
 
 # -------------------------------
 # MAIN PRODUCT ADMIN
@@ -53,6 +60,7 @@ class ProductAdmin(nested_admin.NestedModelAdmin):
         IngredientsInline,
         ProductImageInline,
         ProductPrepareInline,
+        ProductWeightInline,
     ]
 
 
