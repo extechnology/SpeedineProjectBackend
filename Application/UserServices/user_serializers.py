@@ -18,10 +18,10 @@ class UserCartItemsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCartItemsModel
-        fields = ['id', 'product', 'product_id', 'quantity', 'sub_total','weight']
+        fields = ['id', 'product', 'product_id', 'quantity', 'sub_total']
 
     def get_sub_total(self, obj):
-        return obj.weight.price * obj.quantity
+        return obj.product.price * obj.quantity
 
 
 
@@ -37,13 +37,13 @@ class UserCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserCartModel
-        fields = ['cart_id', 'items', 'total_price', 'total_items','weight']
+        fields = ['cart_id', 'items', 'total_price', 'total_items']
 
     def get_total_price(self, obj):
         total = 0
         for item in obj.cart_items.all():
 
-            total += item.weight.price * item.quantity
+            total += item.product.price * item.quantity
         return total
 
     def get_total_items(self, obj):
@@ -58,7 +58,7 @@ class ContactUsSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
         
-
+v
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
