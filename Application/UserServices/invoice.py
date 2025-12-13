@@ -17,8 +17,10 @@ from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
 
+from Application.UIServices.ui_models import CompnayLogo
 
 
+logo = CompnayLogo.objects.first()
 
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):

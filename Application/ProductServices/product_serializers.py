@@ -29,26 +29,19 @@ class CustomerReviewSerializer(serializers.ModelSerializer):
         model = CustomerReviewModel
         fields = '__all__'
 
-class ProductWeightSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductWeightModel
-        fields = '__all__'
-
-
 class ProductSerializer(serializers.ModelSerializer):
     ingredients = IngredientsSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     preparations = ProductPrepareSerializer(many=True, read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_id = serializers.CharField(source='category.unique_id', read_only=True)
-    weights = ProductWeightSerializer(many=True, read_only=True)
-    
+
     class Meta:
         model = ProductModel
         fields = [
-            'unique_id', 'name', 'description',
-            'category', 'category_name', 
-            'is_available', 'prepare_time',
-            'difficulty_level', 'rating', 'created_at',
-            'updated_at', 'ingredients', 'images', 'preparations','category_id','weights'
+            'unique_id', 'name', 'description', 'price', 'old_price',
+            'category', 'category_name', 'is_offered', 'offer_price',
+            'is_available', 'special_tags', 'special_offer', 'prepare_time',
+            'difficulty_level', 'serving_count', 'rating', 'created_at',
+            'updated_at', 'ingredients', 'images', 'preparations','category_id','weight'
         ]
