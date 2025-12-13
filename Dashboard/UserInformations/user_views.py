@@ -1,16 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 
 from Application.UserServices.user_models import User
 from Dashboard.UserInformations.user_serializers import DashboardUserSerializer
-
+from Dashboard.permissions import IsSuperUser
 
 class UserListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsSuperUser]
 
     def get(self, request):
         users = User.objects.all().order_by("-date_joined")
