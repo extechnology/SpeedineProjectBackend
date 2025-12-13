@@ -56,6 +56,7 @@ class UserOrderItemsAdmin(admin.ModelAdmin):
         "product",
         "quantity",
         "price",
+        'weight',
         "created",
     )
     list_filter = ("created",)

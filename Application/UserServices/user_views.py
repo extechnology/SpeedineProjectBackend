@@ -188,7 +188,7 @@ def create_order(request):
 
         # Create Razorpay order (amount in paise)
         razorpay_order = client.order.create({
-            "amount": int(final_amount * 1000),
+            "amount": int(final_amount * 100),
             "currency": "INR",
             "payment_capture": 1,
         })
@@ -198,20 +198,25 @@ def create_order(request):
 
         # Store ordered items
         for item in order_items:
-            product_info = item.get("product") or {}
+            product_info = item.get("product", {})
             product_uid = product_info.get("unique_id")
-            weight_id = product_info.get("weight")
+        
+            weights = product_info.get("weights", [])
+            weight_id = weights[0]["id"] if weights else None
+        
             if not product_uid:
                 raise ProductModel.DoesNotExist
-
+        
             product = ProductModel.objects.get(unique_id=product_uid)
+        
             UserOrderItemsModel.objects.create(
                 user_order=user_order,
                 product=product,
-                weight=weight_id,
+                weight_id=weight_id,  # FK id
                 quantity=item.get("quantity", 1),
                 price=item.get("sub_total", 0.0),
             )
+        
 
         return Response({
             "success": True,
