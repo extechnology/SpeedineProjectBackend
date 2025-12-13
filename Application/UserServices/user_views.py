@@ -307,10 +307,3 @@ class ShippingChargeAPIView(APIView):
         charge = shipping_charges.charge
         return Response(charge)
 
-
-
-
-
-
-
-
