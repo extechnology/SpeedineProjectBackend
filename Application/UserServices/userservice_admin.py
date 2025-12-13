@@ -7,6 +7,7 @@ from .user_models import (
     UserOrderItemsModel,
     OrderStatus,
     UserAddressModel,
+    ShippingCharge
 )
 
 # ================= CONTACT ==================
@@ -77,3 +78,5 @@ class UserAddressAdmin(admin.ModelAdmin):
     list_display = ("user", "address", "created", "updated")
     search_fields = ("user__username", "address")
     ordering = ("-created",)
+
+admin.site.register(ShippingCharge)

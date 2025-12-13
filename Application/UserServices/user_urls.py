@@ -9,7 +9,7 @@ from .user_views import (
     create_order,
     verify_payment,
     UserOrderAPIView,
-    generate_invoice_pdf,
+    ShippingChargeAPIView
 )
 router = DefaultRouter()
 router.register(r'cart', CartViewSet, basename='cart')
@@ -27,6 +27,8 @@ urlpatterns = [
     path('verify-payment/', verify_payment, name='verify-payment'),
 
     path('user-order/', UserOrderAPIView.as_view(), name='user-order'),
+
+    path('shipping-charge/', ShippingChargeAPIView.as_view(), name='shipping-charge'),
 
     # path('invoice/generate/<str:order_id>/', generate_invoice_pdf, name='generate_invoice'),
 

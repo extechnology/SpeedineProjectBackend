@@ -1,9 +1,14 @@
 from rest_framework import serializers
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus,ShippingCharge
 from ..ProductServices.product_serializers import ProductSerializer
 from ..ProductServices.product_models import ProductModel
 from ..models import User
 
+
+class ShippingChargeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingCharge
+        fields = '__all__'
 
 class UserCartItemsSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
