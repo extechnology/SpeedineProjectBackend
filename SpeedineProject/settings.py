@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'Application',
+    'Dashboard',
     'corsheaders',
     'nested_admin',
     

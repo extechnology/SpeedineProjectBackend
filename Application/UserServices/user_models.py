@@ -29,7 +29,6 @@ class UserCartItemsModel(models.Model):
     user_cart = models.ForeignKey(UserCartModel, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey('Application.ProductModel', on_delete=models.CASCADE, related_name='cart_items')
     quantity = models.IntegerField(default=1)
-    weight = models.ForeignKey('Application.ProductWeightModel', on_delete=models.CASCADE, related_name='cart_items', null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -109,7 +108,6 @@ class UserOrderItemsModel(models.Model):
     product = models.ForeignKey('Application.ProductModel', on_delete=models.PROTECT, related_name='order_items')
     quantity = models.PositiveIntegerField(default=1)
     price = models.FloatField(default=0.0)  # snapshot of product price
-    weight = models.ForeignKey('Application.ProductWeightModel', on_delete=models.CASCADE, related_name='order_items', null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

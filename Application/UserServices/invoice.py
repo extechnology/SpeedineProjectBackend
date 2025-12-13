@@ -17,8 +17,10 @@ from .user_models import UserOrderModel, UserOrderItemsModel, UserAddressModel
 
 from django.views.decorators.csrf import csrf_exempt
 
+from Application.UIServices.ui_models import CompnayLogo
 
 
+logo = CompnayLogo.objects.first()
 
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
@@ -160,25 +162,17 @@ def generate_invoice_pdf(request, order_id):
     ]]
 
     sn = 1
-    if len(items) == 1:
-        items_data.append([
-            sn, items[0]['description'], '9109100', 'NOS', str(items[0]['quantity']),
-            f"{items[0]['unit_price']:.2f}", f"{items[0]['quantity'] * items[0]['unit_price']:.2f}",
-            f"{int(tax_rate*100)}%", 'Included', 'Included',
-            f"{items[0]['quantity'] * items[0]['unit_price']:.2f}"
-        ])
-    else:
-        for item in items:
-            item_total = item['quantity'] * item['unit_price']
-            cgst = (item_total * tax_rate) / 2
-            sgst = (item_total * tax_rate) / 2
+    for item in items:
+        item_total = item['quantity'] * item['unit_price']
+        cgst = (item_total * tax_rate) / 2
+        sgst = (item_total * tax_rate) / 2
 
-            items_data.append([
-                sn, item['description'], '9109100', 'NOS', str(item['quantity']),
-                f"{item['unit_price']:.2f}", f"{item_total:.2f}",
-                f"{int(tax_rate*100)}%", 'Included', 'Included',
-                f"{item_total}"
-            ])
+        items_data.append([
+            sn, item['description'], '9109100', 'NOS', str(item['quantity']),
+            f"{item['unit_price']:.2f}", f"{item_total:.2f}",
+            f"{int(tax_rate*100)}%", 'Included', 'Included',
+            f"{item_total}"
+        ])
         sn += 1
 
     # Add totals
