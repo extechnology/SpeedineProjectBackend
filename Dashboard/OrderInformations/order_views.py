@@ -3,6 +3,7 @@ from .order_serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import get_object_or_404
 
 from Dashboard.permissions import IsSuperUser
 
@@ -88,6 +89,47 @@ class OrderUpdateView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class OrderStatusUpdateView(APIView):
+    permission_classes = [IsSuperUser]
+
+    def patch(self, request, order_id):
+        order = get_object_or_404(UserOrderModel, order_id=order_id)
+
+        new_status = request.data.get("status")
+
+        valid_statuses = dict(UserOrderModel.STATUS_CHOICES).keys()
+
+        if new_status not in valid_statuses:
+            return Response(
+                {"error": "Invalid status value"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Business rules
+        if order.status == "delivered":
+            return Response(
+                {"error": "Delivered orders cannot be updated"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if order.status == "cancelled":
+            return Response(
+                {"error": "Cancelled orders cannot be updated"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order.status = new_status
+        order.save(update_fields=["status", "updated"])
+
+        return Response(
+            {
+                "order_id": str(order.order_id),
+                "status": order.status,
+                "message": "Order status updated successfully",
+            },
+            status=status.HTTP_200_OK,
+        )
 
 class OrderDeleteView(APIView):
     permission_classes = [IsSuperUser]

@@ -6,4 +6,5 @@ urlpatterns = [
     path("order/<str:order_id>", OrderDetailView.as_view(), name="order-detail"),
     path("order/<str:order_id>/update", OrderUpdateView.as_view(), name="order-update"),
     path("order/<str:order_id>/delete", OrderDeleteView.as_view(), name="order-delete"),
+    path("order/<str:order_id>/status", OrderStatusUpdateView.as_view(), name="order-status-update"),
 ]
