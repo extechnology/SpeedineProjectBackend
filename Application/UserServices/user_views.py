@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action,api_view
 
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus
-from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer,OrderItemSerializer,OrderSerializer
+from .user_models import UserCartModel, UserCartItemsModel,ContactModel ,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus,ShippingCharge
+from .user_serializers import UserCartSerializer, UserCartItemsSerializer,ContactUsSerializer,UserSerializer,UserAddressSerializer,OrderItemSerializer,OrderSerializer,ShippingChargeSerializer
 from Application.ProductServices.product_models import ProductModel
 
 from rest_framework.views import APIView
@@ -299,12 +299,11 @@ class UserOrderAPIView(APIView):
         serializer = OrderSerializer(orders, many=True,context={'request': request})
         return Response(serializer.data)
 
+class ShippingChargeAPIView(APIView):
+    permission_classes = [IsUserAuthenticated]
 
-
-
-
-
-
-
-
+    def get(self, request):
+        shipping_charges = ShippingCharge.objects.all().first()
+        charge = shipping_charges.charge
+        return Response(charge)
 
