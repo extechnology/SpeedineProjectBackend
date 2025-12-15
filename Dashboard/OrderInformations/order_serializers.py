@@ -15,7 +15,7 @@ class DashboardUserAddressSerializer(serializers.ModelSerializer):
 class DashboardUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username', 'email']
 
 class DashboardOrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,10 +32,9 @@ class DashboardOrderItemsSerializer(serializers.ModelSerializer):
 class DashboardOrderSerializer(serializers.ModelSerializer):
     order_items = DashboardOrderItemsSerializer(many=True, read_only=True)
     order_status = DashboardOrderStatusSerializer(many=True, read_only=True)
-    user_address = DashboardUserAddressSerializer(many=True, read_only=True)
-    user = DashboardUserSerializer(many=True, read_only=True)
+    shipping_address = DashboardUserAddressSerializer(read_only=True)
+    user = DashboardUserSerializer(read_only=True)
+
     class Meta:
         model = UserOrderModel
-        fields = '__all__'
-
-
+        fields = "__all__"
