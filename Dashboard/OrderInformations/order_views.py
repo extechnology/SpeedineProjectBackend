@@ -52,7 +52,7 @@ class OrderListView(APIView):
         # --------------------
         # CUSTOM DATE RANGE
         # --------------------
-        
+
         start_date = request.query_params.get("start_date")
         end_date = request.query_params.get("end_date")
 
@@ -91,7 +91,7 @@ class OrderUpdateView(APIView):
 
 class OrderDeleteView(APIView):
     permission_classes = [IsSuperUser]
-
+    
     def delete(self, request, order_id):
         order = UserOrderModel.objects.get(order_id=order_id)
         order.delete()
