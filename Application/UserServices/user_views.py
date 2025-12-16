@@ -149,6 +149,17 @@ class UserAddressAPIView(APIView):
     
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, pk):
+        try:
+            address = UserAddressModel.objects.get(pk=pk, user=request.user)
+        except UserAddressModel.DoesNotExist:
+            return Response({"error": "Address not found"}, status=404)
+
+        address.delete()
+        return Response({"success": True}, status=204)
+
+        
+
 @api_view(['POST'])
 def create_order(request):
     # Prepare basic data
