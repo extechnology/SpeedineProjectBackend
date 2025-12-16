@@ -492,6 +492,9 @@ class GoogleAuthView(APIView):
 
             user, created = User.objects.get_or_create(email=email, defaults={'username': email.split('@')[0], 'fullname': fullname})
 
+            user.is_email_verified = True
+            user.save()
+
             refresh = RefreshToken.for_user(user)
 
             response = Response({
