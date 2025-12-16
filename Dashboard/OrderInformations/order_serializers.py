@@ -6,6 +6,12 @@ from Application.UserServices.user_models import (
     User
 )
 from rest_framework import serializers
+from Application.ProductServices.product_models import ProductModel
+
+class DashboardProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductModel
+        fields = '__all__'
 
 class DashboardUserAddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,6 +30,7 @@ class DashboardOrderStatusSerializer(serializers.ModelSerializer):
 
 
 class DashboardOrderItemsSerializer(serializers.ModelSerializer):
+    product = serializers.CharField(source="product.name", read_only=True)
     class Meta:
         model = UserOrderItemsModel
         fields = '__all__'
