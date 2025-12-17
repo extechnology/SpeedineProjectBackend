@@ -5,8 +5,9 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from Application.UserServices.user_models import User
-from Dashboard.UserInformations.user_serializers import DashboardUserSerializer
+from Dashboard.UserInformations.user_serializers import DashboardUserSerializer,DashboardContactSerializer
 from Dashboard.permissions import IsSuperUser
+from Application.UserServices.user_models import ContactModel
 
 class UserListView(APIView):
     permission_classes = [IsSuperUser]
@@ -75,5 +76,54 @@ class UserListView(APIView):
 
         serializer = DashboardUserSerializer(
             users, many=True, context={"request": request}
+        )
+        return Response(serializer.data)
+
+
+class ContactListView(APIView):
+    permission_classes = [IsSuperUser]
+
+    def get(self, request):
+        contacts = ContactModel.objects.all().order_by("-created")
+        
+        q = request.query_params.get("q")
+        if q:
+            contacts = contacts.filter(
+                Q(name__icontains=q) |
+                Q(email__icontains=q) |
+                Q(message__icontains=q)
+            )
+        
+        date_filter = request.query_params.get("date")
+        now = timezone.now()
+
+        if date_filter == "today":
+            contacts = contacts.filter(created__date=now.date())
+
+        elif date_filter == "month":
+            contacts = contacts.filter(
+                created__year=now.year,
+                created__month=now.month
+            )
+
+        elif date_filter == "year":
+            contacts = contacts.filter(created__year=now.year)
+
+        # --------------------
+        # CUSTOM DATE RANGE
+        # --------------------
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        if start_date and end_date:
+            try:
+                start = datetime.strptime(start_date, "%Y-%m-%d")
+                end = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
+                contacts = contacts.filter(created__range=(start, end))
+            except ValueError:
+                pass
+
+        serializer = DashboardContactSerializer(
+            contacts, many=True, context={"request": request}
         )
         return Response(serializer.data)
