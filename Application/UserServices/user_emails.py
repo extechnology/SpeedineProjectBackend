@@ -59,3 +59,43 @@ def order_confirmation_email(order):
         )
 
     msg.send()
+
+
+def success_contact_us_email(contact_us):
+    subject = "Thank you for your message!"
+    to_email = [contact_us.email]  # should be list
+    from_email = settings.EMAIL_HOST_USER
+
+    text_content = f"Thank you for your message! We have received your inquiry and will get back to you as soon as possible."
+
+    # HTML Template
+    html_content = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="color: #007bff; text-align: center;">Thank You for Your Message</h2>
+
+                <p style="font-size: 16px; color: #333;">
+                    Hi <b>{contact_us.name}</b>,<br><br>
+                    Thank you for your message! We have received your inquiry and will get back to you as soon as possible.
+                </p>
+
+                <div style="text-align: center; margin-top: 25px;">
+                    <span style="font-size: 16px; font-weight: bold; color: #007bff;">
+                        Thank you for shopping with us 🚀
+                    </span>
+                </div>
+
+                <p style="font-size: 12px; color: #aaa; text-align: center; margin-top: 30px;">
+                    &copy; 2025 Speedine
+                </p>
+            </div>
+        </body>
+    </html>
+    """
+
+    # Email Setup
+    msg = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+    msg.attach_alternative(html_content, "text/html")
+
+    msg.send()

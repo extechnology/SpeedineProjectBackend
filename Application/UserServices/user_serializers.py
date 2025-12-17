@@ -1,9 +1,17 @@
 from rest_framework import serializers
-from .user_models import UserCartModel, UserCartItemsModel,ContactModel,UserAddressModel,UserOrderItemsModel,UserOrderModel,OrderStatus,ShippingCharge
+from .user_models import (UserCartModel,
+    UserCartItemsModel,
+    ContactModel,
+    UserAddressModel,
+    UserOrderItemsModel,
+    UserOrderModel,
+    OrderStatus,
+    ShippingCharge,
+    )
 from ..ProductServices.product_serializers import ProductSerializer
 from ..ProductServices.product_models import ProductModel
 from ..models import User
-
+from .user_emails import success_contact_us_email
 
 class ShippingChargeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,11 +64,6 @@ class UserCartSerializer(serializers.ModelSerializer):
 
 
 
-
-class ContactUsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ContactModel 
-        fields = '__all__'
         
         
 
@@ -104,3 +107,13 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderStatus
         fields = '__all__'
+
+class ContactUsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContactModel 
+        fields = '__all__'
+
+    def create(self, validated_data):
+        contact = ContactModel.objects.create(**validated_data)
+        success_contact_us_email(contact)  # pass model instance
+        return contact

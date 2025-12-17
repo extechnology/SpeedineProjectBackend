@@ -14,9 +14,10 @@ class ShippingCharge(models.Model):
 
 class ContactModel(models.Model):
     name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    subject = models.CharField(max_length=255,default='',null=True,blank=True)  
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Contact from {self.name} <{self.email}>"
@@ -147,3 +148,4 @@ class OrderStatus(models.Model):
         if self.is_active:
             OrderStatus.objects.filter(order=self.order).exclude(pk=self.pk).update(is_active=False)
         super().save(*args, **kwargs)
+

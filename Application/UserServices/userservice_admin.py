@@ -13,9 +13,9 @@ from .user_models import (
 # ================= CONTACT ==================
 @admin.register(ContactModel)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "created_at")
+    list_display = ("name", "email", "created")
     search_fields = ("name", "email")
-    ordering = ("-created_at",)
+    ordering = ("-created",)
 
 
 # ================= CART ITEMS INLINE ==================
