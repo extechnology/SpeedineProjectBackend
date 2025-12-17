@@ -82,7 +82,7 @@ class UserOrderModel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     order_id = models.UUIDField(default=uuid.uuid4, editable=False)
 
-    shipping_address = models.ForeignKey(UserAddressModel, on_delete=models.PROTECT, null=True)
+    shipping_address = models.ForeignKey(UserAddressModel, on_delete=models.SET_NULL, null=True)
 
     total_amount = models.FloatField(default=0.0)
     discount_amount = models.FloatField(default=0.0)

@@ -2,3 +2,8 @@
 .sqlite3
 __pycache__/
 *.pyc
+Application/UserServices/__pycache__/user_models.cpython-312.pyc
+.pyc
+Application/Authentication/__pycache__/auth_serializers.cpython-312.pyc
+Application/Authentication/__pycache__/auth_views.cpython-312.pyc
+
