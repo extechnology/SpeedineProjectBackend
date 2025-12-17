@@ -73,9 +73,11 @@ class UserSerializer(serializers.ModelSerializer):
 class UserAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAddressModel
-        fields = '__all__'
-        
-        
+        fields = "__all__"
+        extra_kwargs = {
+            "user": {"read_only": True}
+        }
+
         
 
 
