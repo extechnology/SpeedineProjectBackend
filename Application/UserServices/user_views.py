@@ -233,7 +233,8 @@ def create_order(request):
                 user_order=user_order,
                 product=product,
                 quantity=item.get("quantity", 1),
-                price=item.get("sub_total", 0.0),
+                total_amount=item.get("sub_total", 0.0),
+                price=product.price,
             )
 
         return Response({

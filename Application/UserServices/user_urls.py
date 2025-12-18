@@ -35,6 +35,6 @@ urlpatterns = [
 
     path('contact-us/', ContactUsAPIView.as_view(), name='contact-us'),
 
-    # path('invoice/generate/<str:order_id>/', generate_invoice_pdf, name='generate-invoice'),
+    path('invoice/generate/<str:order_id>/', generate_invoice_pdf, name='generate-invoice'),
 
 ]

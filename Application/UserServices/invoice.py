@@ -15,7 +15,6 @@ from django.views.decorators.csrf import csrf_exempt
 from Application.Authentication.auth_utils import get_user_from_request
 from .user_models import UserOrderModel, UserOrderItemsModel
 
-
 @csrf_exempt
 def generate_invoice_pdf(request, order_id):
     # -------------------- AUTH --------------------
@@ -28,6 +27,7 @@ def generate_invoice_pdf(request, order_id):
     ).select_related('product')
 
     user_address = order.shipping_address
+
 
     # -------------------- COMPANY --------------------
     company = {
@@ -55,15 +55,17 @@ def generate_invoice_pdf(request, order_id):
     items = []
     subtotal = 0
 
+
     for item in order_items:
         product = item.product
-        line_total = item.price
+        unit_price = item.product.price
+        line_total = item.total_amount
         subtotal += line_total
 
         items.append({
             'name': product.name,
             'qty': item.quantity,
-            'rate': item.price,
+            'rate': unit_price,
             'total': line_total
         })
 
@@ -160,6 +162,11 @@ def generate_invoice_pdf(request, order_id):
             f"{item['rate']:.2f}",
             'Included',
             f"{item['total']:.2f}"
+        ])
+    
+    if order.shipping_charge > 0:
+        table_data.append([
+            '', '', '', 'Shipping Charge', '', f"{order.shipping_charge:.2f}"
         ])
 
     table_data.append(['', '', '', 'Grand Total', '', f"{subtotal:.2f}"])

@@ -95,6 +95,8 @@ class UserOrderModel(models.Model):
     razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
     is_paid = models.BooleanField(default=False)
 
+    shipping_charge = models.FloatField(default=0.0)
+
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
@@ -118,6 +120,7 @@ class UserOrderItemsModel(models.Model):
     product = models.ForeignKey('Application.ProductModel', on_delete=models.PROTECT, related_name='order_items')
     quantity = models.PositiveIntegerField(default=1)
     price = models.FloatField(default=0.0)  # snapshot of product price
+    total_amount = models.FloatField(default=0.0)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
