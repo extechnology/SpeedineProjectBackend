@@ -18,6 +18,10 @@ from datetime import timedelta
 from decouple import config
 
 
+from django.utils import timezone
+
+# Get the current time in the default timezone
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -100,9 +104,7 @@ DATABASES = {
 #         'PASSWORD': config('DB_PASSWORD'),
 #         'HOST': config('DB_HOST', default='localhost'),
 #         'PORT': config('DB_PORT', default='3306'),
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
-#         }
+
 #     }
 # }
 
@@ -254,6 +256,9 @@ SIMPLE_JWT = {
     # --- Extra Options ---
     "AUTH_COOKIE_REFRESH_PATH": "/api/auth/refresh/",  # Endpoint for refresh (optional)
 }
+
+TIME_ZONE = 'Asia/Kolkata'
+USE_TZ = True
 
 
 

@@ -12,6 +12,8 @@ from .user_views import (
     ShippingChargeAPIView,
     ContactUsAPIView,
 )
+from .invoice import generate_invoice_pdf
+
 router = DefaultRouter()
 router.register(r'cart', CartViewSet, basename='cart')
 router.register(r'cart-items', CartItemViewSet, basename='cart-items')
@@ -32,5 +34,7 @@ urlpatterns = [
     path('shipping-charge/', ShippingChargeAPIView.as_view(), name='shipping-charge'),
 
     path('contact-us/', ContactUsAPIView.as_view(), name='contact-us'),
+
+    path('invoice/generate/<str:order_id>/', generate_invoice_pdf, name='generate-invoice'),
 
 ]
