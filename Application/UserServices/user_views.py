@@ -291,11 +291,13 @@ def verify_payment(request):
         order_items = UserOrderItemsModel.objects.filter(user_order=order)
         pdf_file = generate_invoice_pdf(request, order.order_id)
 
+
         order.invoice.save(
             f"invoice_{order.order_id}.pdf",
-            ContentFile(pdf_file),
+            ContentFile(pdf_response.content),  # ✅ bytes
             save=True
         )
+
         
 
         order_confirmation_email(order)
