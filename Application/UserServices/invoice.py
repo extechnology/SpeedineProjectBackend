@@ -168,6 +168,8 @@ def generate_invoice_pdf(request, order_id):
         table_data.append([
             '', '', '', 'Shipping Charge', '', f"{order.shipping_charge:.2f}"
         ])
+    
+    subtotal += order.shipping_charge
 
     table_data.append(['', '', '', 'Grand Total', '', f"{subtotal:.2f}"])
 
