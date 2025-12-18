@@ -289,16 +289,13 @@ def verify_payment(request):
 
         # Remove ordered items from user's cart
         order_items = UserOrderItemsModel.objects.filter(user_order=order)
-        pdf_file = generate_invoice_pdf(request, order.order_id)
-
-
+        pdf_response = generate_invoice_pdf(request, order.order_id)
+        
         order.invoice.save(
             f"invoice_{order.order_id}.pdf",
-            ContentFile(pdf_file),
+            ContentFile(pdf_response.content),  # ✅ FIX
             save=True
         )
-
-        
 
         order_confirmation_email(order)
         try:
