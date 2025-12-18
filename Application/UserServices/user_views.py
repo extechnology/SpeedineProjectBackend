@@ -294,7 +294,7 @@ def verify_payment(request):
 
         order.invoice.save(
             f"invoice_{order.order_id}.pdf",
-            ContentFile(pdf_response.content),  # ✅ bytes
+            ContentFile(pdf_file),
             save=True
         )
 
