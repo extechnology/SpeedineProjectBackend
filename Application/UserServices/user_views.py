@@ -182,7 +182,7 @@ def create_order(request):
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     user = request.user
     order_items = request.data.get("order_items", [])
-
+    shipping_charge = request.data.get("shipping_charge", 0)
     # Parse and validate amount
     try:
         total_amount = float(request.data.get("amount", 0))
@@ -209,6 +209,7 @@ def create_order(request):
             total_amount=total_amount,
             discount_amount=discount,
             final_amount=final_amount,
+            shipping_charge=shipping_charge,
         )
 
         # Create Razorpay order (amount in paise)
@@ -290,7 +291,7 @@ def verify_payment(request):
         # Remove ordered items from user's cart
         order_items = UserOrderItemsModel.objects.filter(user_order=order)
         pdf_response = generate_invoice_pdf(request, order.order_id)
-        
+
         order.invoice.save(
             f"invoice_{order.order_id}.pdf",
             ContentFile(pdf_response.content),  # ✅ FIX
