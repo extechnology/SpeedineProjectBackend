@@ -44,5 +44,5 @@ class DashboardOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrderModel
-        fields = '_all_'
+        fields = '__all__'
 
