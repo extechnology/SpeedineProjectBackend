@@ -44,22 +44,5 @@ class DashboardOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserOrderModel
-        fields = [
-            "id",
-            "order_id",
-            "user",
-            "shipping_address",
-            "total_amount",
-            "discount_amount",
-            "final_amount",
-            "status",
-            "is_paid",
-            "razorpay_order_id",
-            "razorpay_payment_id",
-            "razorpay_signature",
-            "order_items",
-            "order_status",
-            "created",
-            "updated",
-        ]
+        fields = '_all_'
 
