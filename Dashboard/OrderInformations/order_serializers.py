@@ -46,3 +46,4 @@ class DashboardOrderSerializer(serializers.ModelSerializer):
         model = UserOrderModel
         fields = '__all__'
 
+
